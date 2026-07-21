@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d9488" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="FoodLog" />
+  <title>FoodLog</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" type="button" onclick="App.go('today')" aria-label="Go to Today">
+        <span class="brand-mark">F</span>
+        <span>FoodLog</span>
+      </button>
+      <nav class="desktop-nav" id="desktopNav" aria-label="Primary navigation"></nav>
+    </header>
+    <main id="app" tabindex="-1"></main>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation"></nav>
+  <button id="fab" class="fab hidden" type="button" onclick="App.openAddSheet()" aria-label="Add food">+</button>
+
+  <div id="sheetBackdrop" class="backdrop hidden" onclick="App.backdropClose(event)">
+    <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Add food">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div id="sheetContent"></div>
+    </section>
+  </div>
+
+  <div id="modalBackdrop" class="backdrop modal-backdrop hidden" onclick="App.modalBackdropClose(event)">
+    <section id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Dialog">
+      <div id="modalContent"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <input id="calendarPicker" class="visually-hidden" type="date" onchange="App.pickDate(this.value)" />
+  <input id="importPicker" class="visually-hidden" type="file" accept="application/json,.json" onchange="App.handleImportFile(this.files?.[0])" />
+
+  <script src="./app.js"></script>
+</body>
+</html>
