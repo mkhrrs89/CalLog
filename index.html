@@ -19,6 +19,20 @@
         font-size: 16px;
       }
     }
+
+    /* Keep food names visually lighter and slightly more compact throughout the app. */
+    .food-name,
+    .quick-food-main > strong,
+    .search-result > span:first-child > strong {
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    /* Reduce the headline calorie total slightly while preserving its bold emphasis. */
+    .total-number {
+      font-size: clamp(2.15rem, 10.5vw, 4rem);
+      font-weight: 900;
+    }
   </style>
 </head>
 <body>
