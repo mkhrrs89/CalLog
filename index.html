@@ -42,6 +42,29 @@
       font-weight: 900;
     }
 
+    .quick-log-toggle {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      cursor: pointer;
+      text-align: left;
+    }
+    .quick-log-toggle h2 { margin: 0; }
+    .quick-log-chevron {
+      display: inline-block;
+      font-size: 1.35rem;
+      line-height: 1;
+      transition: transform 0.18s ease;
+    }
+    .quick-log-toggle[aria-expanded="true"] .quick-log-chevron {
+      transform: rotate(90deg);
+    }
+    .quick-log-collapsible-content[hidden] { display: none; }
+
     .mobile-date-nav {
       display: none;
       min-width: 0;
@@ -130,8 +153,43 @@
         }
       };
 
-      new MutationObserver(syncMobileDateNav).observe(app, { childList: true, subtree: true });
-      syncMobileDateNav();
+      const enhanceQuickLog = () => {
+        const heading = [...app.querySelectorAll('.section-title h2')]
+          .find(item => item.textContent.trim() === 'Quick Log');
+        const section = heading?.closest('section.section');
+        if (!section || section.dataset.quickLogCollapsible === 'true') return;
+
+        section.dataset.quickLogCollapsible = 'true';
+        const titleRow = heading.closest('.section-title');
+        const content = document.createElement('div');
+        content.className = 'quick-log-collapsible-content';
+        content.hidden = true;
+
+        [...section.children]
+          .filter(child => child !== titleRow)
+          .forEach(child => content.appendChild(child));
+        section.appendChild(content);
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'quick-log-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = '<span class="quick-log-chevron" aria-hidden="true">›</span><h2>Quick Log</h2>';
+        toggle.addEventListener('click', () => {
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', String(!expanded));
+          content.hidden = expanded;
+        });
+        heading.replaceWith(toggle);
+      };
+
+      const syncEnhancedUi = () => {
+        syncMobileDateNav();
+        enhanceQuickLog();
+      };
+
+      new MutationObserver(syncEnhancedUi).observe(app, { childList: true, subtree: true });
+      syncEnhancedUi();
     })();
   </script>
 </body>
