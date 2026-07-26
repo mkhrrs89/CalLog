@@ -161,6 +161,9 @@
 
         section.dataset.quickLogCollapsible = 'true';
         const titleRow = heading.closest('.section-title');
+        const manageFoodsButton = [...titleRow.querySelectorAll('button')]
+          .find(button => button.textContent.trim() === 'Manage foods');
+        manageFoodsButton?.remove();
         const content = document.createElement('div');
         content.className = 'quick-log-collapsible-content';
         content.hidden = true;
