@@ -33,6 +33,38 @@
       font-size: clamp(2.15rem, 10.5vw, 4rem);
       font-weight: 900;
     }
+
+    .mobile-date-nav {
+      display: none;
+      min-width: 0;
+      margin-left: auto;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.18rem;
+    }
+    .mobile-date-nav.hidden { display: none; }
+    .mobile-date-nav .icon-btn {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+    }
+    .mobile-date-nav .date-button {
+      min-width: 0;
+      max-width: 104px;
+      padding: 0 0.2rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 719px) {
+      .topbar { gap: 0.45rem; }
+      .brand { flex: 0 0 auto; }
+      .mobile-date-nav { display: flex; }
+      .page-head > .date-nav { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -42,6 +74,11 @@
         <span class="brand-mark">F</span>
         <span>FoodLog</span>
       </button>
+      <div id="mobileDateNav" class="mobile-date-nav hidden" aria-label="Date navigation">
+        <button class="icon-btn" type="button" onclick="App.changeDate(-1)" aria-label="Previous day">‹</button>
+        <button id="mobileDateButton" class="date-button" type="button" onclick="App.openCalendarPicker()">Date</button>
+        <button class="icon-btn" type="button" onclick="App.changeDate(1)" aria-label="Next day">›</button>
+      </div>
       <nav class="desktop-nav" id="desktopNav" aria-label="Primary navigation"></nav>
     </header>
     <main id="app" tabindex="-1"></main>
@@ -68,5 +105,26 @@
   <input id="importPicker" class="visually-hidden" type="file" accept="application/json,.json" onchange="App.handleImportFile(this.files?.[0])" />
 
   <script src="./app.js"></script>
+  <script>
+    (() => {
+      const app = document.getElementById('app');
+      const mobileNav = document.getElementById('mobileDateNav');
+      const mobileButton = document.getElementById('mobileDateButton');
+
+      const syncMobileDateNav = () => {
+        const pageDateButton = app.querySelector('.date-nav .date-button');
+        const hasDatePicker = Boolean(pageDateButton);
+        mobileNav.classList.toggle('hidden', !hasDatePicker);
+        if (hasDatePicker) {
+          const label = pageDateButton.textContent.trim();
+          mobileButton.textContent = label;
+          mobileButton.setAttribute('aria-label', `Choose date, currently ${label}`);
+        }
+      };
+
+      new MutationObserver(syncMobileDateNav).observe(app, { childList: true, subtree: true });
+      syncMobileDateNav();
+    })();
+  </script>
 </body>
 </html>
