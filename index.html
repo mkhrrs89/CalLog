@@ -185,6 +185,71 @@
       const app = document.getElementById('app');
       const mobileNav = document.getElementById('mobileDateNav');
       const mobileButton = document.getElementById('mobileDateButton');
+      const DEFAULT_DAILY_CALORIE_GOAL = 1500;
+
+      const getDailyCalorieGoal = () => {
+        const value = Number(App.cache.settings.dailyCalorieGoal);
+        return Number.isFinite(value) && value > 0
+          ? Math.round(value)
+          : DEFAULT_DAILY_CALORIE_GOAL;
+      };
+
+      const originalEnsureSettings = App.ensureSettings;
+      App.ensureSettings = async function() {
+        await originalEnsureSettings.call(this);
+        const existing = await this.db.get('settings', 'dailyCalorieGoal');
+        if (!existing) {
+          await this.db.put('settings', {
+            key: 'dailyCalorieGoal',
+            value: DEFAULT_DAILY_CALORIE_GOAL,
+          });
+        }
+      };
+
+      const originalRenderToday = App.renderToday;
+      App.renderToday = async function() {
+        const html = await originalRenderToday.call(this);
+        const total = this.totalForDate();
+        const goal = getDailyCalorieGoal();
+        const scaleMax = total <= goal
+          ? goal
+          : Math.max(goal, Math.ceil(total / 500) * 500);
+        const percent = Math.min(100, total / scaleMax * 100);
+        const scaleLabel = total <= goal
+          ? `Goal ${this.formatNumber(goal)}`
+          : `Goal ${this.formatNumber(goal)} · Scale ${this.formatNumber(scaleMax)}`;
+
+        return html.replace(
+          /<div class="row space tiny muted"><span>Accumulated<\/span><span>Auto-scale [^<]+<\/span><\/div>\s*<div class="accumulation-track"><div class="accumulation-fill" style="width:[^"]+"><\/div><\/div>/,
+          `<div class="row space tiny muted"><span>Accumulated</span><span>${scaleLabel}</span></div>
+            <div class="accumulation-track"><div class="accumulation-fill" style="width:${percent}%"></div></div>`
+        );
+      };
+
+      const originalRenderSettings = App.renderSettings;
+      App.renderSettings = async function() {
+        const html = await originalRenderSettings.call(this);
+        const goal = getDailyCalorieGoal();
+        const goalSetting = `
+              <label>Daily calorie goal
+                <input id="dailyCalorieGoalSetting" type="number" min="1" max="100000" step="50" inputmode="numeric" value="${goal}" onchange="App.saveDailyCalorieGoal(this.value)" />
+                <span class="field-help">Used by the Today progress bar. The scale expands automatically after you pass the goal.</span>
+              </label>`;
+        return html.replace('<div class="settings-list">', `<div class="settings-list">${goalSetting}`);
+      };
+
+      App.saveDailyCalorieGoal = async value => {
+        const goal = Math.round(Number(value));
+        if (!Number.isFinite(goal) || goal < 1 || goal > 100000) {
+          const input = document.getElementById('dailyCalorieGoalSetting');
+          if (input) input.value = getDailyCalorieGoal();
+          App.showToast('Enter a daily goal between 1 and 100,000 calories');
+          return;
+        }
+        await App.setSetting('dailyCalorieGoal', goal);
+        await App.render();
+        App.showToast(`Daily goal set to ${App.formatNumber(goal)} calories`);
+      };
 
       const syncMobileDateNav = () => {
         const pageDateButton = app.querySelector('.date-nav .date-button');
