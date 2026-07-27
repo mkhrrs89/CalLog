@@ -251,6 +251,59 @@
         App.showToast(`Daily goal set to ${App.formatNumber(goal)} calories`);
       };
 
+      const originalOpenFoodEditor = App.openFoodEditor;
+      App.openFoodEditor = async function(id = '') {
+        await originalOpenFoodEditor.call(this, id);
+        const form = document.querySelector('#modalContent form');
+        const portionsLabel = document.getElementById('foodEditPortions')?.closest('label');
+        if (!form || !portionsLabel || document.getElementById('foodEditNotes')) return;
+        const food = id ? this.cache.foods.find(item => item.id === id) : null;
+        const notesLabel = document.createElement('label');
+        notesLabel.innerHTML = `Notes <span class="field-help">Optional · only visible when editing this food</span><textarea id="foodEditNotes" placeholder="Private notes about this saved food">${this.esc(food?.notes || '')}</textarea>`;
+        form.insertBefore(notesLabel, portionsLabel);
+      };
+
+      const originalCollectFoodForm = App.collectFoodForm;
+      App.collectFoodForm = function(id) {
+        const payload = originalCollectFoodForm.call(this, id);
+        payload.notes = document.getElementById('foodEditNotes')?.value.trim() || '';
+        return payload;
+      };
+
+      App.persistFoodForm = async function(payload) {
+        const { existing } = payload;
+        const now = new Date().toISOString();
+        if (existing) {
+          await this.db.put('revisions', {
+            id: this.uid('revision'), entityId: existing.id, entityType: 'food',
+            snapshot: structuredClone(existing), createdAt: now,
+          });
+        }
+        const record = {
+          ...(existing || {}),
+          id: existing?.id || this.uid('food'),
+          name: payload.name,
+          nameLower: this.normalizeName(payload.name),
+          calories: payload.calories,
+          pinned: payload.pinned,
+          source: payload.source,
+          folder: payload.folder,
+          tags: payload.tags,
+          aliases: payload.aliases,
+          portions: payload.portions,
+          notes: payload.notes || '',
+          useCount: existing?.useCount || 0,
+          lastUsedAt: existing?.lastUsedAt || '',
+          createdAt: existing?.createdAt || now,
+          updatedAt: now,
+        };
+        await this.db.put('foods', record);
+        this.closeModal();
+        await this.refreshCache();
+        await this.render();
+        this.showToast(existing ? 'Saved food updated' : 'Saved food added');
+      };
+
       const syncMobileDateNav = () => {
         const pageDateButton = app.querySelector('.date-nav .date-button');
         const hasDatePicker = Boolean(pageDateButton);
