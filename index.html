@@ -252,6 +252,13 @@
         App.showToast(`Daily goal set to ${App.formatNumber(goal)} calories`);
       };
 
+      const capitalizeNewWords = input => {
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        input.value = input.value.replace(/(^|[\s,\-\/])([a-z])/g, (match, boundary, letter) => boundary + letter.toUpperCase());
+        if (start !== null && end !== null) input.setSelectionRange(start, end);
+      };
+
       const originalOpenFoodEditor = App.openFoodEditor;
       App.openFoodEditor = async function(id = '') {
         await originalOpenFoodEditor.call(this, id);
@@ -262,6 +269,13 @@
         const notesLabel = document.createElement('label');
         notesLabel.innerHTML = `Notes <span class="field-help">Optional · only visible when editing this food</span><textarea id="foodEditNotes" placeholder="Private notes about this saved food">${this.esc(food?.notes || '')}</textarea>`;
         form.insertBefore(notesLabel, portionsLabel);
+
+        if (!id) {
+          ['foodEditName', 'foodEditSource', 'foodEditFolder', 'foodEditTags', 'foodEditAliases'].forEach(fieldId => {
+            const input = document.getElementById(fieldId);
+            input?.addEventListener('input', () => capitalizeNewWords(input));
+          });
+        }
       };
 
       const originalCollectFoodForm = App.collectFoodForm;
