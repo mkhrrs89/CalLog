@@ -211,3 +211,65 @@
     );
   };
 })();
+
+setTimeout(() => {
+  if (App.__defaultMealTagInstalled) return;
+  App.__defaultMealTagInstalled = true;
+
+  const validDefaultTagId = food => {
+    const id = food?.defaultMealTagId || '';
+    return App.cache.tags.some(tag => tag.id === id) ? id : '';
+  };
+
+  const originalOpenFoodEditor = App.openFoodEditor;
+  App.openFoodEditor = async function(id = '') {
+    await originalOpenFoodEditor.call(this, id);
+    if (document.getElementById('foodEditDefaultMealTag')) return;
+    const food = id ? this.cache.foods.find(item => item.id === id) : null;
+    const pinnedLabel = document.getElementById('foodEditPinned')?.closest('label');
+    const form = document.querySelector('#modalContent form');
+    if (!form || !pinnedLabel) return;
+
+    const selectedId = validDefaultTagId(food);
+    const label = document.createElement('label');
+    label.innerHTML = `Default meal tag <span class="field-help">Automatically applied whenever this saved food is logged</span><select id="foodEditDefaultMealTag"><option value="">No default — log as Untagged</option>${this.cache.tags.map(tag => `<option value="${this.attr(tag.id)}" ${tag.id === selectedId ? 'selected' : ''}>${this.esc(tag.name)}</option>`).join('')}</select>`;
+    pinnedLabel.insertAdjacentElement('afterend', label);
+  };
+
+  const originalCollectFoodForm = App.collectFoodForm;
+  App.collectFoodForm = function(id) {
+    const payload = originalCollectFoodForm.call(this, id);
+    payload.defaultMealTagId = document.getElementById('foodEditDefaultMealTag')?.value || '';
+    return payload;
+  };
+
+  const originalPersistFoodForm = App.persistFoodForm;
+  App.persistFoodForm = async function(payload) {
+    const db = this.db;
+    const originalPut = db.put;
+    db.put = function(storeName, value) {
+      if (storeName === 'foods') value = { ...value, defaultMealTagId: payload.defaultMealTagId || '' };
+      return originalPut.call(this, storeName, value);
+    };
+    try {
+      await originalPersistFoodForm.call(this, payload);
+    } finally {
+      db.put = originalPut;
+    }
+  };
+
+  const originalOpenSavedFoodLogger = App.openSavedFoodLogger;
+  App.openSavedFoodLogger = function(id) {
+    originalOpenSavedFoodLogger.call(this, id);
+    const food = this.cache.foods.find(item => item.id === id);
+    const select = document.getElementById('savedMealTag');
+    if (select) select.value = validDefaultTagId(food);
+  };
+
+  const originalLogSavedFood = App.logSavedFood;
+  App.logSavedFood = function(food, options = {}) {
+    const hasExplicitTag = Object.prototype.hasOwnProperty.call(options, 'mealTagId');
+    const mealTagId = hasExplicitTag ? (options.mealTagId || '') : validDefaultTagId(food);
+    return originalLogSavedFood.call(this, food, { ...options, mealTagId });
+  };
+}, 0);
