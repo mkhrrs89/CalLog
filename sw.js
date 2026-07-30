@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v3';
+const CACHE = 'foodlog-v4';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './entry-serving-editor.js', './food-library-filters.js', './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -10,6 +10,8 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(clients => Promise.all(clients.map(client => client.navigate(client.url))))
   );
 });
 
