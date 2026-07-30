@@ -1,5 +1,5 @@
-const CACHE = 'foodlog-v2';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-512.png'];
+const CACHE = 'foodlog-v3';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './entry-serving-editor.js', './food-library-filters.js', './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -13,15 +13,34 @@ self.addEventListener('activate', event => {
   );
 });
 
+const withFoodLibraryFilters = async response => {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('text/html')) return response;
+  const html = await response.text();
+  if (html.includes('food-library-filters.js')) {
+    return new Response(html, { status: response.status, statusText: response.statusText, headers: response.headers });
+  }
+  const enhanced = html.replace(
+    '<script src="./entry-serving-editor.js"></script>',
+    '<script src="./entry-serving-editor.js"></script><script src="./food-library-filters.js"></script>'
+  );
+  return new Response(enhanced, { status: response.status, statusText: response.statusText, headers: response.headers });
+};
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        const copy = response.clone();
+      .then(async response => {
+        const served = event.request.mode === 'navigate' ? await withFoodLibraryFilters(response) : response;
+        const copy = served.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        return response;
+        return served;
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+      .catch(() => caches.match(event.request).then(async cached => {
+        if (cached) return event.request.mode === 'navigate' ? withFoodLibraryFilters(cached) : cached;
+        const fallback = await caches.match('./index.html');
+        return fallback ? withFoodLibraryFilters(fallback) : fallback;
+      }))
   );
 });
