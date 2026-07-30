@@ -105,3 +105,92 @@
     await originalSaveEntryEdit.call(this, id);
   };
 })();
+
+(() => {
+  const originalEntriesHtml = App.entriesHtml;
+  App.entriesHtml = function(entries) {
+    if (this.view.entryView !== 'grouped' || !entries.length) {
+      return originalEntriesHtml.call(this, entries);
+    }
+
+    const tags = this.tagMap();
+    const currentGroups = new Map(this.cache.tags.map(tag => [tag.id, []]));
+    const currentByName = new Map(this.cache.tags.map(tag => [tag.name.trim().toLowerCase(), tag]));
+    const historicalGroups = new Map();
+    const untagged = [];
+
+    for (const entry of entries) {
+      const currentTag = tags.get(entry.mealTagId);
+      if (currentTag && currentGroups.has(currentTag.id)) {
+        currentGroups.get(currentTag.id).push(entry);
+        continue;
+      }
+
+      const snapshotName = entry.mealTagSnapshot?.name?.trim() || '';
+      if (snapshotName) {
+        const matchingCurrentTag = currentByName.get(snapshotName.toLowerCase());
+        if (matchingCurrentTag) {
+          currentGroups.get(matchingCurrentTag.id).push(entry);
+        } else {
+          const key = snapshotName.toLowerCase();
+          if (!historicalGroups.has(key)) historicalGroups.set(key, { name: snapshotName, items: [] });
+          historicalGroups.get(key).items.push(entry);
+        }
+      } else {
+        untagged.push(entry);
+      }
+    }
+
+    const orderedGroups = this.cache.tags
+      .map(tag => ({ name: tag.name, items: currentGroups.get(tag.id) || [] }))
+      .filter(group => group.items.length);
+    orderedGroups.push(...historicalGroups.values());
+    if (untagged.length) orderedGroups.push({ name: 'Untagged', items: untagged });
+
+    return orderedGroups.map(group => `
+      <div class="group-head">${this.esc(group.name)}</div>
+      <div class="entry-list">${group.items.map(entry => this.entryRowHtml(entry, tags)).join('')}</div>`).join('');
+  };
+
+  const originalRenderSettings = App.renderSettings;
+  App.renderSettings = async function() {
+    const html = await originalRenderSettings.call(this);
+    const addTagButton = '<button class="btn primary" onclick="App.openMealTagEditor()">Add tag</button>';
+    if (!html.includes(addTagButton)) return html;
+    const reorderButton = this.cache.tags.length > 1
+      ? '<button class="btn ghost" onclick="App.openMealTagReorder()">Reorder</button>'
+      : '';
+    return html.replace(addTagButton, `<div class="actions">${reorderButton}${addTagButton}</div>`);
+  };
+
+  App.openMealTagReorder = function() {
+    const tags = this.cache.tags;
+    this.showModal(`
+      <div class="row space"><div><div class="eyebrow">Settings order</div><h2>Reorder meal tags</h2></div><button class="icon-btn" onclick="App.closeModal()">×</button></div>
+      <p>Grouped food logs follow this order. Untagged entries always appear last.</p>
+      ${tags.length ? `<div class="stack">${tags.map((tag, index) => `
+        <div class="tag-manager-row" style="grid-template-columns:auto minmax(0,1fr) auto">
+          <span class="color-dot" style="background:${this.attr(tag.color)}"></span>
+          <strong>${this.esc(tag.name)}</strong>
+          <div class="actions" style="flex-wrap:nowrap">
+            <button class="icon-btn" type="button" onclick="App.moveMealTag('${tag.id}',-1)" aria-label="Move ${this.attr(tag.name)} up" ${index === 0 ? 'disabled style="opacity:.35"' : ''}>↑</button>
+            <button class="icon-btn" type="button" onclick="App.moveMealTag('${tag.id}',1)" aria-label="Move ${this.attr(tag.name)} down" ${index === tags.length - 1 ? 'disabled style="opacity:.35"' : ''}>↓</button>
+          </div>
+        </div>`).join('')}</div>` : '<div class="empty-state">No meal tags to reorder.</div>'}
+      <div class="actions" style="margin-top:.9rem"><button class="btn primary" onclick="App.closeModal()">Done</button></div>`);
+  };
+
+  App.moveMealTag = async function(id, direction) {
+    const tags = [...this.cache.tags];
+    const fromIndex = tags.findIndex(tag => tag.id === id);
+    const toIndex = fromIndex + (direction < 0 ? -1 : 1);
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= tags.length) return;
+
+    [tags[fromIndex], tags[toIndex]] = [tags[toIndex], tags[fromIndex]];
+    const updatedAt = new Date().toISOString();
+    await this.db.putMany('mealTags', tags.map((tag, index) => ({ ...tag, order: index, updatedAt })));
+    await this.refreshCache();
+    if (this.view.page === 'settings') await this.render();
+    this.openMealTagReorder();
+  };
+})();
