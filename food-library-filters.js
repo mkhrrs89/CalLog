@@ -70,7 +70,7 @@
         </div>
         ${hasActiveFilters() ? '<div class="actions" style="margin-top:.65rem"><button class="btn ghost small-btn" type="button" onclick="App.clearFoodLibraryFilters()">Clear filters</button></div>' : ''}
       </section>`;
-    return html.replace('</label>\n\n        ${this.view.foodBulk', `</label>${controls}\n\n        \${this.view.foodBulk`);
+    return html.replace(/(<label>Search database[\s\S]*?<\/label>)/, `$1${controls}`);
   };
 
   const matchesText = (food, query) => {
