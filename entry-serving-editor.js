@@ -1,1 +1,1 @@
-document.write('<script src="./entry-serving-editor-core.js"><\/script><script src="./food-library-filters.js"><\/script><script src="./export-filename-time.js"><\/script><script src="./default-meal-tag-logging-fix.js"><\/script>');
+document.write('<script src="./entry-serving-editor-core.js"><\/script><script src="./food-library-filters.js"><\/script><script src="./export-filename-time.js"><\/script><script src="./default-meal-tag-logging-fix.js"><\/script><script src="./remove-pinned-add-sheet.js"><\/script>');
