@@ -194,3 +194,20 @@
     this.openMealTagReorder();
   };
 })();
+
+(() => {
+  const originalRenderToday = App.renderToday;
+  App.renderToday = async function() {
+    const html = await originalRenderToday.call(this);
+    const pinned = this.cache.foods
+      .filter(food => food.pinned)
+      .sort((a, b) => (b.useCount || 0) - (a.useCount || 0));
+    if (pinned.length <= 8) return html;
+
+    const extraTiles = pinned.slice(8).map(food => this.quickFoodHtml(food)).join('');
+    return html.replace(
+      /(<div class="quick-grid">[\s\S]*?)(<\/div>\s*<\/section>\s*<section class="section">)/,
+      `$1${extraTiles}$2`
+    );
+  };
+})();
