@@ -1,0 +1,62 @@
+/* Smaller typography scoped strictly to the Foods page content. */
+body.foods-page-compact-type #app .page {
+  font-size: 0.88rem;
+}
+
+body.foods-page-compact-type #app .page h1 {
+  font-size: clamp(1.55rem, 6vw, 2.5rem);
+}
+
+body.foods-page-compact-type #app .page h2 {
+  font-size: 1.02rem;
+}
+
+body.foods-page-compact-type #app .page h3 {
+  font-size: 0.9rem;
+}
+
+body.foods-page-compact-type #app .page p {
+  font-size: 0.82rem;
+}
+
+body.foods-page-compact-type #app .page .eyebrow {
+  font-size: 0.67rem;
+}
+
+body.foods-page-compact-type #app .page .small {
+  font-size: 0.78rem;
+}
+
+body.foods-page-compact-type #app .page .tiny,
+body.foods-page-compact-type #app .page .food-row-meta,
+body.foods-page-compact-type #app .page .field-help {
+  font-size: 0.68rem;
+}
+
+body.foods-page-compact-type #app .page .food-name,
+body.foods-page-compact-type #app .page .food-row-main,
+body.foods-page-compact-type #app .page .food-row-main strong {
+  font-size: 0.82rem;
+}
+
+body.foods-page-compact-type #app .page label,
+body.foods-page-compact-type #app .page summary {
+  font-size: 0.78rem;
+}
+
+body.foods-page-compact-type #app .page input,
+body.foods-page-compact-type #app .page select,
+body.foods-page-compact-type #app .page textarea,
+body.foods-page-compact-type #app .page button,
+body.foods-page-compact-type #app .page .btn,
+body.foods-page-compact-type #app .page .chip {
+  font-size: 0.8rem;
+}
+
+body.foods-page-compact-type #app .page .btn.small-btn {
+  font-size: 0.75rem;
+}
+
+body.foods-page-compact-type #app .page .group-head {
+  font-size: 0.69rem;
+}
