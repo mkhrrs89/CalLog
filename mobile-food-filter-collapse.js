@@ -1,6 +1,11 @@
 (() => {
-  const mobileQuery = '(max-width: 719px)';
-  const filterPanelPattern = /<section class="card subtle" style="margin-top:\.75rem">([\s\S]*?<label>Sort by[\s\S]*?)<\/section>/;
+  const mobileQuery = window.matchMedia('(max-width: 719px)');
+  const app = document.getElementById('app');
+  if (!app) return;
+
+  if (App.view.foodFiltersExpanded === undefined) {
+    App.view.foodFiltersExpanded = false;
+  }
 
   const activeOptionCount = () => [
     App.view.foodTagFilter,
@@ -10,28 +15,60 @@
     App.view.foodSort !== 'name' ? App.view.foodSort : '',
   ].filter(Boolean).length;
 
-  const originalRenderFoods = App.renderFoods;
-  App.renderFoods = async function() {
-    const html = await originalRenderFoods.call(this);
-    if (!window.matchMedia(mobileQuery).matches) return html;
+  const findFilterPanels = () => [...app.querySelectorAll('section.card.subtle')]
+    .filter(panel => panel.querySelector('select[onchange*="foodSort"]'));
 
-    if (this.view.foodFiltersExpanded === undefined) {
-      this.view.foodFiltersExpanded = false;
+  const enhanceFilters = () => {
+    if (App.view.page !== 'foods') return;
+
+    const existingDetails = app.querySelector('details.food-filter-details');
+    const panels = findFilterPanels();
+
+    if (existingDetails) {
+      panels.forEach(panel => panel.remove());
+      return;
     }
 
+    if (!panels.length) return;
+
+    const panel = panels.shift();
+    panels.forEach(duplicate => duplicate.remove());
+
+    if (!mobileQuery.matches) return;
+
+    const details = document.createElement('details');
+    details.className = 'card subtle food-filter-details';
+    details.style.marginTop = '.75rem';
+    details.open = Boolean(App.view.foodFiltersExpanded);
+
     const activeCount = activeOptionCount();
-    const openAttribute = this.view.foodFiltersExpanded ? ' open' : '';
+    const summary = document.createElement('summary');
+    summary.style.cursor = 'pointer';
+    summary.style.fontWeight = '800';
+    summary.innerHTML = `Filters &amp; sorting${activeCount ? ` <span class="tiny muted">· ${activeCount} active</span>` : ''}`;
 
-    return html.replace(filterPanelPattern, (panel, content) => `
-      <details class="card subtle" style="margin-top:.75rem"${openAttribute} ontoggle="App.setFoodFiltersExpanded(this.open)">
-        <summary style="cursor:pointer;font-weight:800">
-          Filters &amp; sorting${activeCount ? ` <span class="tiny muted">· ${activeCount} active</span>` : ''}
-        </summary>
-        <div style="margin-top:.75rem">${content}</div>
-      </details>`);
+    const content = document.createElement('div');
+    content.style.marginTop = '.75rem';
+    while (panel.firstChild) content.appendChild(panel.firstChild);
+
+    details.append(summary, content);
+    panel.replaceWith(details);
+    details.addEventListener('toggle', () => {
+      App.view.foodFiltersExpanded = details.open;
+    });
   };
 
-  App.setFoodFiltersExpanded = function(open) {
-    this.view.foodFiltersExpanded = Boolean(open);
+  let queued = false;
+  const queueEnhancement = () => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => {
+      queued = false;
+      enhanceFilters();
+    });
   };
+
+  new MutationObserver(queueEnhancement).observe(app, { childList: true, subtree: true });
+  mobileQuery.addEventListener?.('change', () => App.render());
+  queueEnhancement();
 })();
