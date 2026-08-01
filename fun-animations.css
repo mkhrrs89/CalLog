@@ -1,0 +1,210 @@
+/* Playful, lightweight motion enhancements for FoodLog. */
+
+:root {
+  --motion-spring: cubic-bezier(.2, .9, .25, 1.18);
+  --motion-smooth: cubic-bezier(.2, .8, .2, 1);
+}
+
+.brand-mark,
+.desktop-nav button,
+.bottom-nav button,
+.segmented button,
+.quick-food,
+.quick-food-main,
+.quick-food-more,
+.entry-row,
+.food-row,
+.food-row-main,
+.search-result,
+.stat-card,
+.chart-card,
+.card,
+.fab {
+  transition:
+    transform .18s var(--motion-smooth),
+    box-shadow .18s ease,
+    border-color .18s ease,
+    background-color .18s ease,
+    filter .18s ease;
+}
+
+.brand:active .brand-mark {
+  animation: brandBoop .38s var(--motion-spring);
+}
+
+.desktop-nav button.active,
+.bottom-nav button.active,
+.segmented button.active {
+  animation: selectedPop .28s var(--motion-spring);
+}
+
+.quick-log-collapsible-content:not([hidden]) {
+  transform-origin: top center;
+  animation: quickLogReveal .32s var(--motion-smooth) both;
+}
+
+.quick-grid .quick-food,
+.entry-list .entry-row,
+.food-list .food-row,
+.search-results .search-result {
+  animation: itemFloatIn .32s var(--motion-smooth) both;
+}
+
+.quick-grid > :nth-child(2n),
+.entry-list > :nth-child(2n),
+.food-list > :nth-child(2n),
+.search-results > :nth-child(2n) { animation-delay: 35ms; }
+
+.quick-grid > :nth-child(3n),
+.entry-list > :nth-child(3n),
+.food-list > :nth-child(3n),
+.search-results > :nth-child(3n) { animation-delay: 65ms; }
+
+.quick-grid > :nth-child(4n),
+.entry-list > :nth-child(4n),
+.food-list > :nth-child(4n),
+.search-results > :nth-child(4n) { animation-delay: 90ms; }
+
+.accumulation-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.accumulation-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  transform: translateX(-160%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.48), transparent);
+  animation: progressGlint 1.05s .18s var(--motion-smooth) both;
+  pointer-events: none;
+}
+
+.fab:active {
+  animation: fabBoop .36s var(--motion-spring);
+}
+
+.total-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 28%, var(--accent) 0 2px, transparent 3px),
+    radial-gradient(circle at 34% 14%, var(--warning) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 24%, var(--accent-strong) 0 2px, transparent 3px),
+    radial-gradient(circle at 84% 58%, var(--warning) 0 2px, transparent 3px),
+    radial-gradient(circle at 62% 78%, var(--accent) 0 2px, transparent 3px),
+    radial-gradient(circle at 24% 72%, var(--accent-strong) 0 2px, transparent 3px);
+}
+
+body.foodlog-celebrate .total-card {
+  animation: totalCelebrate .62s var(--motion-spring);
+}
+
+body.foodlog-celebrate .total-card::before {
+  animation: sparkleBurst .68s ease-out both;
+}
+
+body.foodlog-celebrate .fab:not(.hidden) {
+  animation: fabCelebrate .52s var(--motion-spring);
+}
+
+details.food-filter-details[open] > div {
+  transform-origin: top center;
+  animation: quickLogReveal .26s var(--motion-smooth) both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quick-food:hover,
+  .entry-row:hover,
+  .food-row:hover,
+  .search-result:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .card:not(.total-card):hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent), var(--line) 62%);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--accent), transparent 88%);
+  }
+
+  .brand:hover .brand-mark {
+    transform: rotate(-4deg) scale(1.05);
+  }
+
+  .fab:hover {
+    transform: translateY(-3px) rotate(4deg);
+    filter: brightness(1.06);
+  }
+}
+
+.quick-food:active,
+.entry-row:active,
+.food-row:active,
+.search-result:active {
+  transform: scale(.985);
+}
+
+@keyframes brandBoop {
+  0%, 100% { transform: none; }
+  42% { transform: rotate(-9deg) scale(1.12); }
+  68% { transform: rotate(4deg) scale(.97); }
+}
+
+@keyframes selectedPop {
+  0% { transform: scale(.94); }
+  65% { transform: scale(1.045); }
+  100% { transform: none; }
+}
+
+@keyframes quickLogReveal {
+  from { opacity: 0; transform: translateY(-8px) scaleY(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes itemFloatIn {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes progressGlint {
+  from { transform: translateX(-160%) skewX(-18deg); }
+  to { transform: translateX(420%) skewX(-18deg); }
+}
+
+@keyframes fabBoop {
+  0%, 100% { transform: none; }
+  45% { transform: scale(.86) rotate(22deg); }
+  72% { transform: scale(1.08) rotate(-5deg); }
+}
+
+@keyframes totalCelebrate {
+  0%, 100% { transform: none; }
+  38% { transform: scale(1.015); box-shadow: 0 0 0 5px var(--accent-soft), var(--shadow); }
+  70% { transform: scale(.997); }
+}
+
+@keyframes sparkleBurst {
+  0% { opacity: 0; transform: scale(.72); }
+  22% { opacity: .95; }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes fabCelebrate {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(-7px) rotate(12deg) scale(1.08); }
+  72% { transform: translateY(1px) rotate(-4deg) scale(.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
