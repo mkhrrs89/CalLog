@@ -1,0 +1,19 @@
+/* Keep long logged-food names inside their entry card while preserving calories. */
+.entry-row .food-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.28;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.entry-row .calories {
+  flex: 0 0 auto;
+  align-self: center;
+}
