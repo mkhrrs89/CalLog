@@ -11,16 +11,41 @@
     }
 
     const tags = this.tagMap();
+    const tagOrder = new Map(this.cache.tags.map((tag, index) => [tag.id, index]));
     const groups = new Map();
 
-    for (const entry of entries) {
+    for (const [entryIndex, entry] of entries.entries()) {
       const currentTag = tags.get(entry.mealTagId);
-      const name = currentTag?.name || entry.mealTagSnapshot?.name || 'Untagged';
-      if (!groups.has(name)) groups.set(name, []);
-      groups.get(name).push(entry);
+      const snapshotName = entry.mealTagSnapshot?.name;
+      const name = currentTag?.name || snapshotName || 'Untagged';
+      const key = entry.mealTagId
+        ? `tag:${entry.mealTagId}`
+        : snapshotName
+          ? `snapshot:${snapshotName}`
+          : 'untagged';
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          name,
+          items: [],
+          order: currentTag
+            ? (tagOrder.get(currentTag.id) ?? Number.MAX_SAFE_INTEGER)
+            : Number.MAX_SAFE_INTEGER,
+          firstEntryIndex: entryIndex,
+          untagged: !entry.mealTagId && !snapshotName,
+        });
+      }
+
+      groups.get(key).items.push(entry);
     }
 
-    return [...groups.entries()].map(([name, items]) => {
+    const orderedGroups = [...groups.values()].sort((a, b) => {
+      if (a.untagged !== b.untagged) return a.untagged ? 1 : -1;
+      if (a.order !== b.order) return a.order - b.order;
+      return a.firstEntryIndex - b.firstEntryIndex;
+    });
+
+    return orderedGroups.map(({ name, items }) => {
       const groupTotal = items.reduce(
         (sum, entry) => sum + Number(entry.calories || 0),
         0
