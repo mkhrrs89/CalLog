@@ -1,0 +1,4 @@
+/* Keep the fixed add-food button stationary while its tap ripple plays. */
+.fab.foodlog-ripple-host {
+  position: fixed !important;
+}
