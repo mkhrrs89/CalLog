@@ -86,6 +86,14 @@
   document.addEventListener('pointerdown', event => {
     if (!event.isPrimary || event.button > 0) return;
 
+    // Swipe-to-delete is a touch/pen gesture. Mouse input should remain a
+    // normal click so desktop users can always open the entry editor.
+    if (event.pointerType === 'mouse') {
+      gesture = null;
+      suppressClickUntil = 0;
+      return;
+    }
+
     const track = event.target.closest('.swipe-entry-track');
     if (!track) return;
     const wrapper = track.closest('.swipe-entry');
