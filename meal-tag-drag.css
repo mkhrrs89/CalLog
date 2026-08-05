@@ -42,6 +42,11 @@
   user-select: none;
 }
 
+/* The global ripple helper normally makes buttons position:relative. */
+.meal-tag-drag-handle.foodlog-ripple-host {
+  position: absolute !important;
+}
+
 .meal-tag-drag-handle:hover,
 .meal-tag-drag-handle:focus-visible {
   background: var(--accent-soft);
