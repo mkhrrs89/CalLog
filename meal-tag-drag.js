@@ -17,6 +17,7 @@
   let scrollFrame = 0;
   let scrollSpeed = 0;
   let lastPoint = null;
+  let handlesQueued = false;
 
   const clearHoldTimer = () => {
     window.clearTimeout(holdTimer);
@@ -27,6 +28,37 @@
     const id = wrapper?.dataset.entryId || '';
     return App.cache.entries.find(entry => entry.id === id) || null;
   };
+
+  const ensureDragHandles = () => {
+    handlesQueued = false;
+    if (App.view.page !== 'today' || App.view.entryView !== 'grouped') return;
+
+    document.querySelectorAll('.meal-tag-group .swipe-entry[data-entry-id]').forEach(wrapper => {
+      const track = wrapper.querySelector('.swipe-entry-track');
+      if (!track || track.querySelector('.meal-tag-drag-handle')) return;
+
+      const entry = entryForWrapper(wrapper);
+      const handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 'meal-tag-drag-handle';
+      handle.setAttribute('aria-label', `Drag ${entry?.name || 'entry'} to another meal tag`);
+      handle.title = 'Drag to another meal tag';
+      handle.innerHTML = '<span aria-hidden="true">⋮⋮</span>';
+      track.appendChild(handle);
+    });
+  };
+
+  const queueDragHandles = () => {
+    if (handlesQueued) return;
+    handlesQueued = true;
+    queueMicrotask(ensureDragHandles);
+  };
+
+  const appRoot = document.getElementById('app');
+  if (appRoot) {
+    new MutationObserver(queueDragHandles).observe(appRoot, { childList: true, subtree: true });
+    queueDragHandles();
+  }
 
   const alternateVisibleTargets = sourceTagId => [
     ...document.querySelectorAll('.meal-tag-group[data-meal-tag-id]'),
@@ -212,6 +244,7 @@
     const sourceGroup = wrapper?.closest('.meal-tag-group');
     if (!wrapper || !track || !sourceGroup) return;
 
+    const fromHandle = Boolean(event.target.closest('.meal-tag-drag-handle'));
     candidate = {
       pointerId: event.pointerId,
       pointerType: event.pointerType || 'mouse',
@@ -222,12 +255,16 @@
       startY: event.clientY,
       lastX: event.clientX,
       lastY: event.clientY,
+      fromHandle,
     };
 
-    if (candidate.pointerType !== 'mouse') {
+    if (fromHandle) {
+      event.preventDefault();
+      startDrag(candidate);
+    } else if (candidate.pointerType !== 'mouse') {
       holdTimer = window.setTimeout(() => startDrag(candidate), TOUCH_HOLD_MS);
     }
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('pointermove', event => {
     if (activeDrag && event.pointerId === activeDrag.pointerId) {
@@ -283,7 +320,7 @@
 
   document.addEventListener('click', event => {
     if (Date.now() >= suppressClickUntil) return;
-    if (!event.target.closest('.swipe-entry, .entry-row')) return;
+    if (!event.target.closest('.swipe-entry, .entry-row, .meal-tag-drag-handle')) return;
     event.preventDefault();
     event.stopImmediatePropagation();
   }, true);
