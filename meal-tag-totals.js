@@ -27,6 +27,7 @@
       if (!groups.has(key)) {
         groups.set(key, {
           name,
+          tagId: currentTag?.id || '',
           items: [],
           order: currentTag
             ? (tagOrder.get(currentTag.id) ?? Number.MAX_SAFE_INTEGER)
@@ -45,18 +46,23 @@
       return a.firstEntryIndex - b.firstEntryIndex;
     });
 
-    return orderedGroups.map(({ name, items }) => {
+    return orderedGroups.map(({ name, tagId, items }) => {
       const groupTotal = items.reduce(
         (sum, entry) => sum + Number(entry.calories || 0),
         0
       );
+      const dropAttributes = tagId
+        ? ` data-meal-tag-id="${this.attr(tagId)}" data-meal-tag-name="${this.attr(name)}"`
+        : '';
 
       return `
-        <div class="group-head">
-          <span>${this.esc(name)}</span>
-          <span class="group-total">${this.formatNumber(groupTotal)} cal</span>
-        </div>
-        <div class="entry-list">${items.map(entry => this.entryRowHtml(entry, tags)).join('')}</div>`;
+        <section class="meal-tag-group"${dropAttributes}>
+          <div class="group-head">
+            <span>${this.esc(name)}</span>
+            <span class="group-total">${this.formatNumber(groupTotal)} cal</span>
+          </div>
+          <div class="entry-list">${items.map(entry => this.entryRowHtml(entry, tags)).join('')}</div>
+        </section>`;
     }).join('');
   };
 
