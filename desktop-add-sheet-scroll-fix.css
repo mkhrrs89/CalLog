@@ -1,0 +1,22 @@
+/* Desktop Add Food sheet: use the available viewport and one primary scrollbar. */
+@media (min-width: 760px) {
+  #sheetBackdrop {
+    align-items: center;
+    padding: 1rem;
+  }
+
+  #sheetBackdrop .sheet {
+    height: min(90vh, 820px);
+    max-height: calc(100dvh - 2rem);
+    border-bottom: 1px solid var(--line);
+    border-radius: 16px;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  /* Avoid nested desktop scrollbars; the full sheet handles scrolling. */
+  #sheetBackdrop .search-results {
+    max-height: none;
+    overflow: visible;
+  }
+}
