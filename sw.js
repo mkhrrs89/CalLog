@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v13';
+const CACHE = 'foodlog-v14';
 const ASSETS = [
   './',
   './index.html',
@@ -22,6 +22,8 @@ const ASSETS = [
   './meal-tag-totals.js',
   './swipe-delete.js',
   './swipe-delete.css',
+  './meal-tag-drag.js',
+  './meal-tag-drag.css',
   './recipe-builder.js',
   './recipe-builder.css',
   './completed-days-chart.js',
@@ -73,7 +75,7 @@ self.addEventListener('fetch', event => {
         return served;
       })
       .catch(() => caches.match(event.request).then(async cached => {
-        if (cached) return event.request.mode === 'navigate' ? withFoodLibraryFilters(cached) : cached;
+        if (cached) return event.request.mode === 'navigate' ? await withFoodLibraryFilters(cached) : cached;
         const fallback = await caches.match('./index.html');
         return fallback ? withFoodLibraryFilters(fallback) : fallback;
       }))
