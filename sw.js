@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v10';
+const CACHE = 'foodlog-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -25,6 +25,7 @@ const ASSETS = [
   './completed-days-chart.js',
   './calorie-target-chart.js',
   './calorie-target-chart.css',
+  './serving-label.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
