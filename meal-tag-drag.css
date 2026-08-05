@@ -10,6 +10,49 @@
     transform .16s ease;
 }
 
+.meal-tag-group .swipe-entry-track {
+  position: relative;
+}
+
+.meal-tag-group .entry-row {
+  padding-left: 2.65rem;
+}
+
+.meal-tag-drag-handle {
+  position: absolute;
+  z-index: 4;
+  left: .42rem;
+  top: 50%;
+  width: 28px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -4px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.meal-tag-drag-handle:hover,
+.meal-tag-drag-handle:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.meal-tag-drag-handle:active {
+  cursor: grabbing;
+  transform: translateY(-50%) scale(.94);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .meal-tag-group .swipe-entry,
   .meal-tag-group .entry-row {
@@ -84,7 +127,8 @@ body.meal-tag-dragging .meal-tag-group.is-meal-drag-source-group {
 
 @media (prefers-reduced-motion: reduce) {
   .meal-tag-group,
-  .meal-tag-drag-ghost {
+  .meal-tag-drag-ghost,
+  .meal-tag-drag-handle {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
   }
