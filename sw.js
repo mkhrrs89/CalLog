@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v5';
+const CACHE = 'foodlog-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,8 @@ const ASSETS = [
   './meal-tag-totals.js',
   './swipe-delete.js',
   './swipe-delete.css',
+  './recipe-builder.js',
+  './recipe-builder.css',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
