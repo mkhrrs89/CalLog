@@ -78,12 +78,12 @@
           const yy = y(max * tick);
           return `<line class="chart-grid" x1="${pad.l}" y1="${yy}" x2="${width - pad.r}" y2="${yy}"/><text class="chart-label" x="${pad.l - 6}" y="${yy + 3}" text-anchor="end">${this.formatNumber(max * tick)}</text>`;
         }).join('')}
+        <polygon class="chart-area" points="${area}"/>
+        <polyline class="chart-line" points="${points}"/>
         <line class="calorie-target-line" x1="${pad.l}" y1="${targetY}" x2="${width - pad.r}" y2="${targetY}">
           <title>Calorie target: ${this.formatNumber(target)}</title>
         </line>
         <text class="calorie-target-label" x="${width - pad.r - 4}" y="${targetLabelY}" text-anchor="end">Target ${this.formatNumber(target)}</text>
-        <polygon class="chart-area" points="${area}"/>
-        <polyline class="chart-line" points="${points}"/>
         ${series.map((item, index) => `<circle class="chart-dot" cx="${x(index)}" cy="${y(item.value)}" r="${series.length > 50 ? 2 : 3}"><title>${this.esc(item.label)}: ${this.formatNumber(item.value)} calories</title></circle>`).join('')}
         ${series.map((item, index) => index % labelEvery === 0 || index === series.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 10}" text-anchor="middle">${this.esc(item.label)}</text>` : '').join('')}
       </svg>`;
