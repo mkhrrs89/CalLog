@@ -1,0 +1,91 @@
+/* Drag logged entries between visible meal-tag sections in Grouped view. */
+
+.meal-tag-group {
+  position: relative;
+  border-radius: var(--radius);
+  transition:
+    background-color .16s ease,
+    box-shadow .16s ease,
+    outline-color .16s ease,
+    transform .16s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .meal-tag-group .swipe-entry,
+  .meal-tag-group .entry-row {
+    cursor: grab;
+  }
+
+  .meal-tag-group .swipe-entry:active,
+  .meal-tag-group .entry-row:active {
+    cursor: grabbing;
+  }
+}
+
+body.meal-tag-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.meal-tag-dragging .meal-tag-group[data-meal-tag-id] {
+  outline: 1px dashed color-mix(in srgb, var(--accent), transparent 48%);
+  outline-offset: 4px;
+  background: color-mix(in srgb, var(--accent-soft), transparent 42%);
+}
+
+body.meal-tag-dragging .meal-tag-group[data-meal-tag-id] .entry-list {
+  min-height: 52px;
+}
+
+body.meal-tag-dragging .meal-tag-group.is-meal-drag-source-group {
+  outline-color: transparent;
+  background: transparent;
+}
+
+.meal-tag-group.is-meal-drop-target {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 4px;
+  background: color-mix(in srgb, var(--accent-soft), var(--panel) 34%) !important;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent), transparent 88%);
+  transform: scale(1.006);
+}
+
+.meal-tag-group.is-meal-drop-target .group-head {
+  color: var(--accent-strong);
+}
+
+.swipe-entry.is-meal-drag-source {
+  opacity: .28;
+}
+
+.meal-tag-drag-ghost {
+  position: fixed !important;
+  z-index: 10000 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+  opacity: .94;
+  transform: rotate(1.2deg) scale(1.018);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .28) !important;
+  border-color: var(--accent) !important;
+  cursor: grabbing !important;
+  animation: mealTagGhostLift .16s ease-out both !important;
+}
+
+@keyframes mealTagGhostLift {
+  from {
+    opacity: .7;
+    transform: rotate(0deg) scale(.985);
+  }
+  to {
+    opacity: .94;
+    transform: rotate(1.2deg) scale(1.018);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meal-tag-group,
+  .meal-tag-drag-ghost {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
