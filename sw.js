@@ -1,5 +1,30 @@
-const CACHE = 'foodlog-v4';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './entry-serving-editor.js', './food-library-filters.js', './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-512.png'];
+const CACHE = 'foodlog-v5';
+const ASSETS = [
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './entry-serving-editor.js',
+  './entry-serving-editor-core.js',
+  './food-library-filters.js',
+  './export-filename-time.js',
+  './default-meal-tag-logging-fix.js',
+  './remove-pinned-add-sheet.js',
+  './mobile-food-filter-collapse.js',
+  './fun-animations.js',
+  './fun-animations.css',
+  './saved-food-default-tag-authority.js',
+  './foods-compact-typography.js',
+  './foods-compact-typography.css',
+  './log-entry-name-wrap.css',
+  './meal-tag-totals.js',
+  './swipe-delete.js',
+  './swipe-delete.css',
+  './manifest.webmanifest',
+  './icon.svg',
+  './icon-180.png',
+  './icon-512.png'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
