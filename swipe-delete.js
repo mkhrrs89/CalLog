@@ -83,6 +83,15 @@
     return value;
   };
 
+  const cancelSwipeForMealDrag = pointerId => {
+    if (!gesture || gesture.pointerId !== pointerId) return;
+    const canceled = gesture;
+    gesture = null;
+    try { canceled.track.releasePointerCapture(pointerId); } catch (_) {}
+    canceled.wrapper.classList.remove('is-dragging');
+    canceled.track.style.transform = '';
+  };
+
   document.addEventListener('pointerdown', event => {
     if (!event.isPrimary || event.button > 0) return;
 
@@ -118,6 +127,10 @@
   }, { passive: true });
 
   document.addEventListener('pointermove', event => {
+    if (App.__mealTagDragActivePointerId === event.pointerId) {
+      cancelSwipeForMealDrag(event.pointerId);
+      return;
+    }
     if (!gesture || event.pointerId !== gesture.pointerId) return;
 
     const dx = event.clientX - gesture.startX;
@@ -138,6 +151,10 @@
   }, { passive: false });
 
   const finishGesture = event => {
+    if (App.__mealTagDragActivePointerId === event.pointerId) {
+      cancelSwipeForMealDrag(event.pointerId);
+      return;
+    }
     if (!gesture || event.pointerId !== gesture.pointerId) return;
 
     const finished = gesture;
