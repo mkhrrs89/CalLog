@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v15';
+const CACHE = 'foodlog-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -31,6 +31,7 @@ const ASSETS = [
   './calorie-target-chart.css',
   './serving-label.js',
   './food-metadata-carryover-fix.js',
+  './food-spreadsheet-import.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
