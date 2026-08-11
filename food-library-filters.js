@@ -42,6 +42,7 @@
             <select onchange="App.setFoodLibraryOption('foodSort',this.value)">
               <option value="name" ${this.view.foodSort === 'name' ? 'selected' : ''}>Name A–Z</option>
               <option value="nameDesc" ${this.view.foodSort === 'nameDesc' ? 'selected' : ''}>Name Z–A</option>
+              <option value="dateAdded" ${this.view.foodSort === 'dateAdded' ? 'selected' : ''}>Date added: newest first</option>
               <option value="mostUsed" ${this.view.foodSort === 'mostUsed' ? 'selected' : ''}>Most used</option>
               <option value="recent" ${this.view.foodSort === 'recent' ? 'selected' : ''}>Recently used</option>
               <option value="caloriesLow" ${this.view.foodSort === 'caloriesLow' ? 'selected' : ''}>Calories: low to high</option>
@@ -112,9 +113,14 @@
 
   const sortFoods = foods => {
     const tagName = food => App.cache.tags.find(tag => tag.id === food.defaultMealTagId)?.name || '';
+    const addedTime = food => {
+      const timestamp = Date.parse(food.createdAt || food.updatedAt || '');
+      return Number.isFinite(timestamp) ? timestamp : 0;
+    };
     const sorters = {
       name: (a, b) => a.name.localeCompare(b.name),
       nameDesc: (a, b) => b.name.localeCompare(a.name),
+      dateAdded: (a, b) => addedTime(b) - addedTime(a) || a.name.localeCompare(b.name),
       mostUsed: (a, b) => (b.useCount || 0) - (a.useCount || 0) || a.name.localeCompare(b.name),
       recent: (a, b) => new Date(b.lastUsedAt || 0) - new Date(a.lastUsedAt || 0) || a.name.localeCompare(b.name),
       caloriesLow: (a, b) => Number(a.calories || 0) - Number(b.calories || 0) || a.name.localeCompare(b.name),
