@@ -54,9 +54,6 @@ setTimeout(() => {
       __mealTagSelectionExplicit: explicitlySelected,
     };
 
-    // Older logging wrappers use this flag to distinguish an intentional
-    // "Untagged" selection from a missing/empty value. Set it only while the
-    // underlying legacy chain runs so an explicit user choice remains valid.
     const previousExplicitState = this.__savedFoodTagWasExplicit;
     this.__savedFoodTagWasExplicit = explicitlySelected && !mealTagId;
     try {
@@ -66,10 +63,6 @@ setTimeout(() => {
     }
   };
 
-  // Make the modal submit path deterministic instead of relying on whichever
-  // older wrapper happened to run last. If the user never touched Meal tag,
-  // the food's saved default is authoritative even when that meal has no
-  // entries yet today.
   App.submitSavedFoodLog = async function(foodId) {
     const food = this.cache.foods.find(item => item.id === foodId);
     if (!food) return;
@@ -99,9 +92,6 @@ setTimeout(() => {
     return note ? { note: note.value.trim() } : {};
   }
 
-  // Quick Log may bypass the modal entirely. Passing the resolved default here
-  // makes that route explicit and independent of whether a matching meal group
-  // is already visible on the page.
   const originalLogFoodQuick = App.logFoodQuick;
   App.logFoodQuick = async function(id) {
     const food = this.cache.foods.find(item => item.id === id);
@@ -117,3 +107,5 @@ setTimeout(() => {
     });
   };
 }, 0);
+
+import('./copy-entry-to-date.js').catch(() => {});
