@@ -40,13 +40,19 @@ setTimeout(() => {
     return result;
   };
 
+  // Final authority for saved-food logging. Older wrappers can still prepare
+  // options, but immediately before IndexedDB stores the new entry we enforce
+  // the saved food's default tag unless the user explicitly chose a tag (or
+  // explicitly chose Untagged) in the logging modal.
   const originalLogSavedFood = App.logSavedFood;
   App.logSavedFood = async function(food, options = {}) {
-    const explicitlySelected = options.__mealTagSelectionExplicit === true;
+    const explicitlySelected = options.__mealTagSelectionExplicit === true
+      || (this.__savedFoodTagWasExplicit === true && hasOwn(options, 'mealTagId'));
     const requestedTagId = resolveTagId(options.mealTagId);
     const mealTagId = explicitlySelected
       ? requestedTagId
       : (requestedTagId || defaultTagIdFor(food));
+    const tag = this.cache.tags.find(item => item.id === mealTagId) || null;
 
     const nextOptions = {
       ...options,
@@ -56,9 +62,24 @@ setTimeout(() => {
 
     const previousExplicitState = this.__savedFoodTagWasExplicit;
     this.__savedFoodTagWasExplicit = explicitlySelected && !mealTagId;
+
+    const db = this.db;
+    const originalPut = db.put;
+    db.put = function(storeName, value) {
+      if (storeName === 'entries' && value?.foodId === food?.id) {
+        value = {
+          ...value,
+          mealTagId,
+          mealTagSnapshot: tag ? { id: tag.id, name: tag.name, color: tag.color } : null,
+        };
+      }
+      return originalPut.call(this, storeName, value);
+    };
+
     try {
       return await originalLogSavedFood.call(this, food, nextOptions);
     } finally {
+      db.put = originalPut;
       this.__savedFoodTagWasExplicit = previousExplicitState;
     }
   };
