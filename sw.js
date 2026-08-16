@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v20';
+const CACHE = 'foodlog-v21';
 const ASSETS = [
   './',
   './index.html',
@@ -35,6 +35,7 @@ const ASSETS = [
   './default-meal-tag-authority-v2.js',
   './copy-entry-to-date.js',
   './serving-multiplier-two-decimals.js',
+  './food-default-confidence.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
