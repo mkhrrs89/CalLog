@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v22';
+const CACHE = 'foodlog-v23';
 const ASSETS = [
   './',
   './index.html',
@@ -32,11 +32,11 @@ const ASSETS = [
   './serving-label.js',
   './food-metadata-carryover-fix.js',
   './food-spreadsheet-import.js',
-  './default-meal-tag-authority-v2.js',
   './copy-entry-to-date.js',
   './serving-multiplier-two-decimals.js',
   './food-default-confidence.js',
   './quick-log-serving.js',
+  './default-meal-tag-authority-v2.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
@@ -82,7 +82,7 @@ self.addEventListener('fetch', event => {
         return served;
       })
       .catch(() => caches.match(event.request).then(async cached => {
-        if (cached) return event.request.mode === 'navigate' ? await withFoodLibraryFilters(cached) : cached;
+        if (cached) return event.request.mode === 'navigate' ? withFoodLibraryFilters(cached) : cached;
         const fallback = await caches.match('./index.html');
         return fallback ? withFoodLibraryFilters(fallback) : fallback;
       }))
