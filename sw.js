@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v24';
+const CACHE = 'foodlog-v25';
 const ASSETS = [
   './',
   './index.html',
@@ -38,6 +38,8 @@ const ASSETS = [
   './quick-log-serving.js',
   './default-meal-tag-authority-v2.js',
   './desktop-modal-backdrop-origin-fix.js',
+  './over-goal-progress.js',
+  './over-goal-progress.css',
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
