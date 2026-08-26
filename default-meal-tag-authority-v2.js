@@ -24,54 +24,77 @@ setTimeout(() => {
       || ''
   );
 
-  // Final editor authority. Even if earlier enhancements rebuild or wrap the
-  // food editor, make sure the saved default tag is represented by the final
-  // form that the user actually sees.
+  const validConfidence = value => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['high', 'medium', 'low'].includes(normalized) ? normalized : '';
+  };
+
+  const defaultConfidenceFor = food => validConfidence(
+    food?.defaultConfidence ?? food?.confidence ?? ''
+  );
+
+  // Final editor authority for saved defaults. Both fields are guaranteed to
+  // exist in the form regardless of which earlier enhancement built it.
   const originalOpenFoodEditor = App.openFoodEditor;
   App.openFoodEditor = async function(id = '') {
     await originalOpenFoodEditor.call(this, id);
 
     const food = id ? this.cache.foods.find(item => item.id === id) : null;
-    let select = document.getElementById('foodEditDefaultMealTag');
+    let tagSelect = document.getElementById('foodEditDefaultMealTag');
 
-    if (!select) {
+    if (!tagSelect) {
       const pinnedLabel = document.getElementById('foodEditPinned')?.closest('label');
-      if (!pinnedLabel) return;
-
-      const label = document.createElement('label');
-      label.innerHTML = `Default meal tag <span class="field-help">Automatically applied whenever this saved food is logged</span><select id="foodEditDefaultMealTag"><option value="">No default — log as Untagged</option>${this.cache.tags.map(tag => `<option value="${this.attr(tag.id)}">${this.esc(tag.name)}</option>`).join('')}</select>`;
-      pinnedLabel.insertAdjacentElement('afterend', label);
-      select = document.getElementById('foodEditDefaultMealTag');
+      if (pinnedLabel) {
+        const label = document.createElement('label');
+        label.innerHTML = `Default meal tag <span class="field-help">Automatically applied whenever this saved food is logged</span><select id="foodEditDefaultMealTag"><option value="">No default — log as Untagged</option>${this.cache.tags.map(tag => `<option value="${this.attr(tag.id)}">${this.esc(tag.name)}</option>`).join('')}</select>`;
+        pinnedLabel.insertAdjacentElement('afterend', label);
+        tagSelect = document.getElementById('foodEditDefaultMealTag');
+      }
     }
 
     const savedTag = defaultTagFor(food);
-    if (select) select.value = savedTag?.id || '';
+    if (tagSelect) tagSelect.value = savedTag?.id || '';
+
+    let confidenceSelect = document.getElementById('foodEditDefaultConfidence');
+    if (!confidenceSelect) {
+      const anchor = tagSelect?.closest('label') || document.getElementById('foodEditPinned')?.closest('label');
+      if (anchor) {
+        const label = document.createElement('label');
+        label.innerHTML = `Confidence level <span class="field-help">Default confidence when this food is logged</span><select id="foodEditDefaultConfidence"><option value="">Not specified</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>`;
+        anchor.insertAdjacentElement('afterend', label);
+        confidenceSelect = document.getElementById('foodEditDefaultConfidence');
+      }
+    }
+
+    if (confidenceSelect) confidenceSelect.value = defaultConfidenceFor(food);
   };
 
-  // Read the visible selector last, after every other food-form enhancement.
-  // Store both ID and name so a recreated tag with the same name can still be
-  // recovered if its internal ID ever changes.
+  // Read the visible selectors last so mobile/desktop use the exact values the
+  // user actually sees, then carry them through every later save wrapper.
   const originalCollectFoodForm = App.collectFoodForm;
   App.collectFoodForm = function(id) {
     const payload = originalCollectFoodForm.call(this, id);
-    const select = document.getElementById('foodEditDefaultMealTag');
-    const tag = select
-      ? resolveTag(select.value)
-      : defaultTagFor(payload.existing);
 
+    const tagSelect = document.getElementById('foodEditDefaultMealTag');
+    const tag = tagSelect ? resolveTag(tagSelect.value) : defaultTagFor(payload.existing);
     payload.defaultMealTagId = tag?.id || '';
     payload.defaultMealTagName = tag?.name || '';
+
+    const confidenceSelect = document.getElementById('foodEditDefaultConfidence');
+    payload.defaultConfidence = confidenceSelect
+      ? validConfidence(confidenceSelect.value)
+      : defaultConfidenceFor(payload.existing);
+
     return payload;
   };
 
-  // Final food-write authority. The inline food saver and other metadata
-  // enhancements may construct their own record, but the object that actually
-  // reaches IndexedDB always receives the default meal tag selected above.
+  // Final food-write authority. The object that reaches IndexedDB always gets
+  // both saved defaults, even if an older persistence wrapper omits them.
   const originalPersistFoodForm = App.persistFoodForm;
   App.persistFoodForm = async function(payload) {
-    const select = document.getElementById('foodEditDefaultMealTag');
-    const tag = select
-      ? resolveTag(select.value)
+    const tagSelect = document.getElementById('foodEditDefaultMealTag');
+    const tag = tagSelect
+      ? resolveTag(tagSelect.value)
       : resolveTag(
           payload?.defaultMealTagId
             || payload?.defaultMealTagName
@@ -80,10 +103,16 @@ setTimeout(() => {
             || ''
         );
 
+    const confidenceSelect = document.getElementById('foodEditDefaultConfidence');
+    const defaultConfidence = confidenceSelect
+      ? validConfidence(confidenceSelect.value)
+      : validConfidence(payload?.defaultConfidence ?? defaultConfidenceFor(payload?.existing));
+
     const defaultMealTagId = tag?.id || '';
     const defaultMealTagName = tag?.name || '';
     payload.defaultMealTagId = defaultMealTagId;
     payload.defaultMealTagName = defaultMealTagName;
+    payload.defaultConfidence = defaultConfidence;
 
     const db = this.db;
     const originalPut = db.put;
@@ -93,6 +122,7 @@ setTimeout(() => {
           ...value,
           defaultMealTagId,
           defaultMealTagName,
+          defaultConfidence,
         };
       }
       return originalPut.call(this, storeName, value);
@@ -105,51 +135,68 @@ setTimeout(() => {
     }
   };
 
-  // The logging modal always starts from the food record's saved default. A
-  // change listener distinguishes a real user override (including Untagged)
-  // from an empty value passed through older logging code.
+  // The saved-food logger starts from both stored defaults. Change tracking is
+  // what allows a one-off manual override, including Untagged/Not specified.
   const originalOpenSavedFoodLogger = App.openSavedFoodLogger;
   App.openSavedFoodLogger = function(id) {
     const result = originalOpenSavedFoodLogger.call(this, id);
     const food = this.cache.foods.find(item => item.id === id);
-    const select = document.getElementById('savedMealTag');
-    if (!select || !food) return result;
+    if (!food) return result;
 
-    select.value = defaultTagFor(food)?.id || '';
-    select.dataset.userSelected = 'false';
+    const tagSelect = document.getElementById('savedMealTag');
+    if (tagSelect) {
+      tagSelect.value = defaultTagFor(food)?.id || '';
+      tagSelect.dataset.userSelected = 'false';
+      if (tagSelect.dataset.savedDefaultsTracking !== 'true') {
+        tagSelect.dataset.savedDefaultsTracking = 'true';
+        tagSelect.addEventListener('change', () => {
+          tagSelect.dataset.userSelected = 'true';
+        });
+      }
+    }
 
-    if (select.dataset.defaultMealAuthorityV2Tracking !== 'true') {
-      select.dataset.defaultMealAuthorityV2Tracking = 'true';
-      select.addEventListener('change', () => {
-        select.dataset.userSelected = 'true';
-      });
+    const confidenceSelect = document.getElementById('savedConfidence');
+    if (confidenceSelect) {
+      confidenceSelect.value = defaultConfidenceFor(food);
+      confidenceSelect.dataset.userSelected = 'false';
+      if (confidenceSelect.dataset.savedDefaultsTracking !== 'true') {
+        confidenceSelect.dataset.savedDefaultsTracking = 'true';
+        confidenceSelect.addEventListener('change', () => {
+          confidenceSelect.dataset.userSelected = 'true';
+        });
+      }
     }
 
     return result;
   };
 
-  // Final saved-food logging authority. Immediately before the entry write,
-  // derive the meal tag from the saved food unless the user explicitly changed
-  // the selector for this one log. This is independent of whether that meal
-  // group already has entries on the destination day.
+  // Final logging authority. Both saved defaults are resolved again from the
+  // food record immediately before the entry write. This covers saved-food
+  // search, Quick Log, and the serving modal on both mobile and desktop.
   const originalLogSavedFood = App.logSavedFood;
   App.logSavedFood = async function(food, options = {}) {
-    const explicitlySelected = options.__mealTagSelectionExplicit === true
+    const tagExplicit = options.__mealTagSelectionExplicit === true
       || (this.__savedFoodTagWasExplicit === true && hasOwn(options, 'mealTagId'));
     const requestedTag = resolveTag(options.mealTagId);
-    const tag = explicitlySelected
-      ? requestedTag
-      : (requestedTag || defaultTagFor(food));
+    const tag = tagExplicit ? requestedTag : (requestedTag || defaultTagFor(food));
     const mealTagId = tag?.id || '';
+
+    const confidenceExplicit = options.__confidenceSelectionExplicit === true;
+    const requestedConfidence = validConfidence(options.confidence);
+    const confidence = confidenceExplicit
+      ? requestedConfidence
+      : (requestedConfidence || defaultConfidenceFor(food));
 
     const nextOptions = {
       ...options,
       mealTagId,
-      __mealTagSelectionExplicit: explicitlySelected,
+      confidence,
+      __mealTagSelectionExplicit: tagExplicit,
+      __confidenceSelectionExplicit: confidenceExplicit,
     };
 
     const previousExplicitState = this.__savedFoodTagWasExplicit;
-    this.__savedFoodTagWasExplicit = explicitlySelected && !mealTagId;
+    this.__savedFoodTagWasExplicit = tagExplicit && !mealTagId;
 
     const db = this.db;
     const originalPut = db.put;
@@ -159,6 +206,7 @@ setTimeout(() => {
           ...value,
           mealTagId,
           mealTagSnapshot: tag ? { id: tag.id, name: tag.name, color: tag.color } : null,
+          confidence,
         };
       }
       return originalPut.call(this, storeName, value);
@@ -172,9 +220,8 @@ setTimeout(() => {
     }
   };
 
-  // Make the normal saved-food submit path deterministic. Confidence, notes,
-  // serving labels, multipliers, and saved portions continue to flow through
-  // their existing enhancements unchanged.
+  // Deterministic modal submit path. Empty UI values are only treated as an
+  // intentional override when the user actually changed that selector.
   App.submitSavedFoodLog = async function(foodId) {
     const food = this.cache.foods.find(item => item.id === foodId);
     if (!food) return;
@@ -185,11 +232,18 @@ setTimeout(() => {
     ];
     const portion = portions[Number(document.getElementById('savedPortion')?.value || 0)] || portions[0];
     const multiplier = Math.max(0, Number(document.getElementById('savedMultiplier')?.value || 1));
+
     const tagSelect = document.getElementById('savedMealTag');
     const userSelectedTag = tagSelect?.dataset.userSelected === 'true';
     const selectedTag = userSelectedTag
       ? resolveTag(tagSelect?.value || '')
       : defaultTagFor(food);
+
+    const confidenceSelect = document.getElementById('savedConfidence');
+    const userSelectedConfidence = confidenceSelect?.dataset.userSelected === 'true';
+    const selectedConfidence = userSelectedConfidence
+      ? validConfidence(confidenceSelect?.value || '')
+      : defaultConfidenceFor(food);
 
     await this.logSavedFood(food, {
       calories: Math.round(Number(portion.calories || 0) * multiplier),
@@ -197,7 +251,8 @@ setTimeout(() => {
       portionName: portion.name,
       mealTagId: selectedTag?.id || '',
       __mealTagSelectionExplicit: userSelectedTag,
-      confidence: document.getElementById('savedConfidence')?.value || '',
+      confidence: selectedConfidence,
+      __confidenceSelectionExplicit: userSelectedConfidence,
       note: document.getElementById('savedNote')?.value.trim() || '',
     });
   };
