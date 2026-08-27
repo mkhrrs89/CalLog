@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v26';
+const CACHE = 'foodlog-v27';
 const ASSETS = [
   './',
   './index.html',
@@ -43,6 +43,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './icon.svg',
   './icon-180.png',
+  './apple-touch-icon-180.png',
   './icon-512.png'
 ];
 
