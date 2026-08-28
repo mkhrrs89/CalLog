@@ -1,0 +1,196 @@
+/* Extra motion layered on top of the original fun-animations.css. */
+
+.foodlog-calorie-fly {
+  position: fixed;
+  z-index: 10020;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  padding: .38rem .62rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent), white 20%);
+  background: color-mix(in srgb, var(--accent-strong), black 12%);
+  color: white;
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .01em;
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--accent), transparent 66%);
+  animation: calorieFlyToTotal .9s cubic-bezier(.2,.72,.24,1) forwards;
+}
+
+.total-number.foodlog-total-catch {
+  animation: totalCatch .6s var(--motion-spring);
+  transform-origin: left center;
+}
+
+.entry-row.foodlog-entry-land {
+  animation: entryLand .56s var(--motion-spring) !important;
+}
+
+.foodlog-quick-punch {
+  animation: quickPunch .4s var(--motion-spring) !important;
+}
+
+.chip.foodlog-chip-pop {
+  animation: chipPop .34s var(--motion-spring) !important;
+}
+
+input[type="checkbox"].foodlog-checkbox-pop {
+  animation: checkboxPop .4s var(--motion-spring);
+}
+
+label.foodlog-control-confirm {
+  animation: controlConfirm .48s ease-out;
+}
+
+.meal-tag-group.foodlog-drop-success .group-head {
+  animation: mealDropHeader .68s var(--motion-spring) !important;
+}
+
+.meal-tag-group.foodlog-drop-success .entry-list {
+  animation: mealDropList .7s ease-out;
+}
+
+.meal-tag-group.is-meal-drop-target .group-head {
+  animation: mealTargetBreathe .82s ease-in-out infinite alternate;
+}
+
+.date-button:active {
+  animation: dateButtonSquish .3s var(--motion-spring);
+}
+
+.icon-btn:active {
+  transform: scale(.91);
+}
+
+.food-row .star,
+.quick-food .star {
+  transform-origin: center;
+  transition: transform .18s var(--motion-spring), filter .18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .food-row:hover .star,
+  .quick-food:hover .star {
+    transform: rotate(12deg) scale(1.16);
+    filter: brightness(1.15);
+  }
+
+  .btn.primary:hover {
+    transform: translateY(-2px) scale(1.012);
+  }
+
+  .btn.danger:hover {
+    animation: dangerWiggle .32s ease-in-out;
+  }
+
+  .meal-tag-drag-handle:hover span {
+    display: inline-block;
+    animation: dragHandleDance .45s var(--motion-spring);
+  }
+}
+
+.accumulation-fill.over-goal {
+  animation: overGoalArrival .58s var(--motion-spring);
+}
+
+@keyframes calorieFlyToTotal {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.62) rotate(-5deg);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06) rotate(2deg);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--fly-half-x)), calc(-50% + var(--fly-half-y))) scale(.96) rotate(-2deg);
+  }
+  86% { opacity: .94; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--fly-x)), calc(-50% + var(--fly-y))) scale(.48) rotate(7deg);
+  }
+}
+
+@keyframes totalCatch {
+  0%, 100% { transform: none; }
+  38% { transform: scale(1.09) rotate(-1deg); }
+  62% { transform: scale(.98) rotate(.35deg); }
+  82% { transform: scale(1.02); }
+}
+
+@keyframes entryLand {
+  0% { opacity: .25; transform: translateY(-9px) scale(.97); }
+  48% { opacity: 1; transform: translateY(2px) scale(1.015); }
+  72% { transform: translateY(-1px) scale(.997); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes quickPunch {
+  0%, 100% { transform: none; }
+  38% { transform: scale(.95) rotate(-.8deg); }
+  68% { transform: scale(1.025) rotate(.4deg); }
+}
+
+@keyframes chipPop {
+  0%, 100% { transform: none; }
+  45% { transform: scale(.88); }
+  72% { transform: scale(1.1); }
+}
+
+@keyframes checkboxPop {
+  0%, 100% { transform: none; }
+  42% { transform: scale(.72) rotate(-8deg); }
+  70% { transform: scale(1.18) rotate(4deg); }
+}
+
+@keyframes controlConfirm {
+  0%, 100% { filter: none; }
+  35% { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent), transparent 45%)); }
+}
+
+@keyframes mealDropHeader {
+  0% { transform: translateX(-5px) scale(.97); }
+  36% { transform: translateX(5px) scale(1.035); }
+  62% { transform: translateX(-2px) scale(.995); }
+  100% { transform: none; }
+}
+
+@keyframes mealDropList {
+  0%, 100% { filter: none; }
+  32% { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent), transparent 58%)); }
+}
+
+@keyframes mealTargetBreathe {
+  from { transform: scale(.99); opacity: .82; }
+  to { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes dateButtonSquish {
+  0%, 100% { transform: none; }
+  45% { transform: scale(.94); }
+  72% { transform: scale(1.025); }
+}
+
+@keyframes dangerWiggle {
+  0%, 100% { transform: translateY(-2px); }
+  25% { transform: translateY(-2px) rotate(-1.2deg); }
+  75% { transform: translateY(-2px) rotate(1.2deg); }
+}
+
+@keyframes dragHandleDance {
+  0%, 100% { transform: none; }
+  42% { transform: translateY(-2px) scaleY(1.15); }
+  70% { transform: translateY(1px) scaleY(.94); }
+}
+
+@keyframes overGoalArrival {
+  0% { transform: scaleX(.965); filter: brightness(1.12); }
+  42% { transform: scaleX(1.012); filter: brightness(1.3); }
+  100% { transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foodlog-calorie-fly { display: none !important; }
+}
