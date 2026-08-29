@@ -1,0 +1,45 @@
+.calorie-placeholder-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.calorie-placeholder-entry {
+  border-style: dashed;
+}
+
+.calorie-placeholder-calories {
+  color: var(--warning);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.calorie-placeholder-notice {
+  display: flex;
+  flex-direction: column;
+  gap: .18rem;
+  padding: .75rem .85rem;
+  border: 1px dashed color-mix(in srgb, var(--warning), var(--line) 45%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warning), transparent 91%);
+}
+
+.calorie-placeholder-notice span {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .calorie-placeholder-calories {
+    animation: caloriePlaceholderPulse 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes caloriePlaceholderPulse {
+  0%, 72%, 100% { opacity: .72; }
+  84% { opacity: 1; }
+}
