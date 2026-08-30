@@ -138,6 +138,11 @@
     );
     if (!target || target.disabled) return;
 
+    // On touch/pen, Quick Log selection feedback is handled from the actual
+    // click event instead. This prevents a scroll gesture that merely begins
+    // over a Quick Log tile from creating a ripple.
+    if (event.pointerType !== 'mouse' && target.closest('.quick-food')) return;
+
     const rect = target.getBoundingClientRect();
     const ripple = document.createElement('span');
     const diameter = Math.max(rect.width, rect.height) * 1.25;
