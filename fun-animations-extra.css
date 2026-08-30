@@ -68,6 +68,16 @@ label.foodlog-control-confirm {
   transition: transform .18s var(--motion-spring), filter .18s ease;
 }
 
+/* iPhone/coarse-pointer scrolling should not look like a Quick Log selection.
+   The explicit foodlog-quick-punch class is applied only after a true tap. */
+@media (hover: none) and (pointer: coarse) {
+  .quick-food:active,
+  .quick-food-main:active,
+  .quick-food-more:active {
+    transform: none !important;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .food-row:hover .star,
   .quick-food:hover .star {
