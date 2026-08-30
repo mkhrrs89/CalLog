@@ -88,20 +88,32 @@
     return null;
   };
 
+  // Submit buttons are safe to animate from pointerdown because they are not
+  // part of the scrollable Quick Log grid.
   document.addEventListener('pointerdown', event => {
     if (event.button > 0) return;
 
-    const quick = event.target.closest('.quick-food-main');
     const submit = isLogSubmit(event.target);
-    const logTarget = quick || submit;
-    if (logTarget) {
-      rememberPotentialLog(logTarget);
-      restartClass(quick?.closest('.quick-food') || logTarget, 'foodlog-quick-punch', 430);
+    if (submit) {
+      rememberPotentialLog(submit);
+      restartClass(submit, 'foodlog-quick-punch', 430);
     }
 
     const chip = event.target.closest('.chip');
     if (chip) restartClass(chip, 'foodlog-chip-pop', 360);
   }, { passive: true });
+
+  // Quick Log feedback begins only after a real click/tap has been recognized.
+  // iPhone scrolling does not emit this click, so tiles under the scrolling
+  // finger remain still.
+  document.addEventListener('click', event => {
+    if (reducedMotion.matches) return;
+    const quick = event.target.closest('.quick-food-main');
+    if (!quick) return;
+
+    rememberPotentialLog(quick);
+    restartClass(quick.closest('.quick-food') || quick, 'foodlog-quick-punch', 430);
+  }, true);
 
   document.addEventListener('submit', event => {
     if (reducedMotion.matches || pendingLog) return;
