@@ -8,13 +8,16 @@
 }
 
 .recipe-food-search-input {
+  display: block;
   min-width: 0;
   width: 100%;
+  max-width: 100%;
 }
 
 .recipe-food-search-results {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   max-height: min(220px, 34vh);
   overflow-y: auto;
   overflow-x: hidden;
@@ -98,12 +101,69 @@
 .modal:has(.recipe-builder-form) .recipe-food-select,
 .modal:has(.recipe-builder-form) .recipe-portion-select,
 .modal:has(.recipe-builder-form) .recipe-quantity-input {
-  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
 
 @media (max-width: 760px) {
+  /* The original mobile recipe grid had three columns because the saved-food
+     control was a native select. With a searchable control Safari can collapse
+     that grid area to its intrinsic width. Use a deterministic two-column
+     mobile layout: ingredient number + full remaining search width, then
+     full-width serving and amount controls underneath. */
+  .recipe-ingredient-row {
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    align-items: end;
+  }
+
+  .recipe-ingredient-number {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-self: start;
+    align-self: center;
+  }
+
+  .recipe-food-select {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-self: stretch;
+  }
+
+  .recipe-food-search,
+  .recipe-food-search-input,
+  .recipe-food-search-results {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .recipe-portion-select {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+  }
+
+  .recipe-quantity-input {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+  }
+
+  .recipe-ingredient-subtotal {
+    grid-column: 1 !important;
+    grid-row: 4 !important;
+    justify-self: start;
+    text-align: left;
+  }
+
+  .recipe-remove-ingredient {
+    grid-column: 2 !important;
+    grid-row: 4 !important;
+    justify-self: end;
+  }
+
   .recipe-food-search-result {
     padding: 0.7rem;
   }
