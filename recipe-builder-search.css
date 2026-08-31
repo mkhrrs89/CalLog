@@ -83,13 +83,22 @@
   touch-action: pan-y pinch-zoom;
 }
 
-.modal:has(.recipe-builder-form) #modalContent,
+.modal:has(.recipe-builder-form) #modalContent {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.modal:has(.recipe-builder-form) .recipe-builder-title,
 .modal:has(.recipe-builder-form) .recipe-builder-form,
+.modal:has(.recipe-builder-form) .recipe-ingredients-heading,
 .modal:has(.recipe-builder-form) .recipe-ingredient-list,
 .modal:has(.recipe-builder-form) .recipe-ingredient-row,
 .modal:has(.recipe-builder-form) .recipe-food-select,
 .modal:has(.recipe-builder-form) .recipe-portion-select,
 .modal:has(.recipe-builder-form) .recipe-quantity-input {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
