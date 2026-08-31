@@ -1,0 +1,101 @@
+/* Searchable saved-food picker and mobile width guard for the recipe builder. */
+
+.recipe-food-search {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.recipe-food-search-input {
+  min-width: 0;
+  width: 100%;
+}
+
+.recipe-food-search-results {
+  width: 100%;
+  min-width: 0;
+  max-height: min(220px, 34vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.recipe-food-search-results[hidden] {
+  display: none;
+}
+
+.recipe-food-search-result {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  padding: 0.62rem 0.68rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-food-search-result:last-child {
+  border-bottom: 0;
+}
+
+.recipe-food-search-result:active,
+.recipe-food-search-result:focus-visible {
+  background: var(--accent-soft);
+}
+
+.recipe-food-search-result-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 730;
+}
+
+.recipe-food-search-result-calories {
+  color: var(--muted);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.recipe-food-search-empty {
+  padding: 0.72rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* The base modal uses overflow:auto, which lets a slightly wide recipe row
+   create pointless horizontal panning on iPhone. Keep recipe scrolling vertical. */
+.modal:has(.recipe-builder-form) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+.modal:has(.recipe-builder-form) #modalContent,
+.modal:has(.recipe-builder-form) .recipe-builder-form,
+.modal:has(.recipe-builder-form) .recipe-ingredient-list,
+.modal:has(.recipe-builder-form) .recipe-ingredient-row,
+.modal:has(.recipe-builder-form) .recipe-food-select,
+.modal:has(.recipe-builder-form) .recipe-portion-select,
+.modal:has(.recipe-builder-form) .recipe-quantity-input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .recipe-food-search-result {
+    padding: 0.7rem;
+  }
+}
