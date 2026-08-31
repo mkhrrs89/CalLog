@@ -7,7 +7,9 @@
   const OPEN_DISTANCE = 92;
   const DRAG_SLOP = 7;
   const HORIZONTAL_BIAS = 1.08;
+  const DELETE_TAP_SLOP = 12;
   let gesture = null;
+  let deleteTap = null;
   let openWrapper = null;
   let suppressClickUntil = 0;
 
@@ -75,6 +77,18 @@
     openWrapper = wrapper;
   };
 
+  const deleteFromAction = async deleteButton => {
+    const wrapper = deleteButton?.closest('.swipe-entry');
+    const id = deleteButton?.dataset.entryId;
+    if (!wrapper || !id || wrapper.classList.contains('is-deleting')) return false;
+
+    wrapper.classList.add('is-deleting');
+    openWrapper = null;
+    await new Promise(resolve => window.setTimeout(resolve, 190));
+    await App.deleteEntryImmediate(id);
+    return true;
+  };
+
   const clampDrag = value => {
     if (value > 0) return Math.min(14, value * 0.22);
     if (value < -OPEN_DISTANCE) {
@@ -94,6 +108,19 @@
 
   document.addEventListener('pointerdown', event => {
     if (!event.isPrimary || event.button > 0) return;
+
+    const deleteButton = event.target.closest('.swipe-delete-action');
+    if (deleteButton && event.pointerType !== 'mouse') {
+      deleteTap = {
+        pointerId: event.pointerId,
+        button: deleteButton,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+      };
+      gesture = null;
+      return;
+    }
 
     // Swipe-to-delete is a touch/pen gesture. Mouse input should remain a
     // normal click so desktop users can always open the entry editor.
@@ -127,6 +154,13 @@
   }, { passive: true });
 
   document.addEventListener('pointermove', event => {
+    if (deleteTap && event.pointerId === deleteTap.pointerId) {
+      const dx = event.clientX - deleteTap.startX;
+      const dy = event.clientY - deleteTap.startY;
+      if (Math.hypot(dx, dy) > DELETE_TAP_SLOP) deleteTap.moved = true;
+      return;
+    }
+
     if (App.__mealTagDragActivePointerId === event.pointerId) {
       cancelSwipeForMealDrag(event.pointerId);
       return;
@@ -175,23 +209,34 @@
     }
   };
 
-  document.addEventListener('pointerup', finishGesture, { passive: true });
-  document.addEventListener('pointercancel', finishGesture, { passive: true });
+  document.addEventListener('pointerup', event => {
+    if (deleteTap && event.pointerId === deleteTap.pointerId) {
+      const finished = deleteTap;
+      deleteTap = null;
+
+      const hit = document.elementFromPoint(event.clientX, event.clientY)?.closest('.swipe-delete-action');
+      if (!finished.moved && hit === finished.button) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        deleteFromAction(finished.button);
+      }
+      return;
+    }
+
+    finishGesture(event);
+  }, { passive: false });
+
+  document.addEventListener('pointercancel', event => {
+    if (deleteTap && event.pointerId === deleteTap.pointerId) deleteTap = null;
+    finishGesture(event);
+  }, { passive: true });
 
   document.addEventListener('click', async event => {
     const deleteButton = event.target.closest('.swipe-delete-action');
     if (deleteButton) {
       event.preventDefault();
       event.stopImmediatePropagation();
-
-      const wrapper = deleteButton.closest('.swipe-entry');
-      const id = deleteButton.dataset.entryId;
-      if (!wrapper || !id || wrapper.classList.contains('is-deleting')) return;
-
-      wrapper.classList.add('is-deleting');
-      openWrapper = null;
-      await new Promise(resolve => window.setTimeout(resolve, 190));
-      await App.deleteEntryImmediate(id);
+      await deleteFromAction(deleteButton);
       return;
     }
 
