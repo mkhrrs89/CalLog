@@ -1,0 +1,86 @@
+/* Select multiple logged entries and copy them to a chosen date. */
+
+.multi-copy-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .8rem;
+}
+
+.multi-copy-toolbar strong {
+  margin-left: auto;
+  font-size: .84rem;
+  color: var(--muted);
+}
+
+.multi-copy-groups {
+  display: grid;
+  gap: .75rem;
+}
+
+.multi-copy-group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+
+.multi-copy-group-head {
+  padding: .62rem .68rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.multi-copy-items {
+  display: grid;
+}
+
+.multi-copy-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: .65rem;
+  padding: .68rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.multi-copy-item:last-child {
+  border-bottom: 0;
+}
+
+.multi-copy-item input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.multi-copy-item-main {
+  min-width: 0;
+  display: grid;
+  gap: .12rem;
+}
+
+.multi-copy-item-main strong {
+  overflow-wrap: anywhere;
+}
+
+.multi-copy-destination {
+  margin-top: .85rem;
+}
+
+.multi-copy-actions {
+  margin-top: .85rem;
+}
+
+@media (max-width: 520px) {
+  .multi-copy-toolbar strong {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .multi-copy-group-head {
+    align-items: center;
+  }
+}
