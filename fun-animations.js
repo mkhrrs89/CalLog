@@ -138,6 +138,11 @@
     );
     if (!target || target.disabled) return;
 
+    // Swipe-delete actions must stay position:absolute. The generic ripple host
+    // class forces position:relative, which can move the exposed Delete button
+    // under the user's finger and swallow the first tap on iPhone.
+    if (target.closest('.swipe-delete-action')) return;
+
     // On touch/pen, Quick Log selection feedback is handled from the actual
     // click event instead. This prevents a scroll gesture that merely begins
     // over a Quick Log tile from creating a ripple.
