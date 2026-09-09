@@ -58,6 +58,12 @@
     filter .15s ease;
 }
 
+/* Defensive guard: the generic ripple helper uses position:relative!important.
+   A swipe delete action must never leave its absolute overlay position. */
+.swipe-delete-action.foodlog-ripple-host {
+  position: absolute !important;
+}
+
 .swipe-entry.is-open .swipe-delete-action,
 .swipe-entry.is-dragging .swipe-delete-action {
   opacity: 1;
