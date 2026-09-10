@@ -1,0 +1,48 @@
+/* Collapsed Recent suggestions inside the Add Food sheet. */
+.add-food-recent-details {
+  margin: 0;
+}
+
+.add-food-recent-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin: 0;
+  padding: .15rem 0 .35rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.add-food-recent-summary::-webkit-details-marker {
+  display: none;
+}
+
+.add-food-recent-chevron {
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: transform .18s ease;
+}
+
+.add-food-recent-details[open] .add-food-recent-chevron {
+  transform: rotate(90deg);
+}
+
+.add-food-recent-items {
+  display: grid;
+  gap: .42rem;
+  padding-top: .1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-food-recent-chevron {
+    transition: none;
+  }
+}
