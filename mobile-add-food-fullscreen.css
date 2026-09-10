@@ -1,0 +1,30 @@
+/* Full-screen Add Food experience on phones. Other sheets keep their existing sizes. */
+@media (max-width: 759px) {
+  #sheetBackdrop:has(#manualEntryForm) {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  #sheet:has(#manualEntryForm) {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    padding: calc(0.7rem + env(safe-area-inset-top)) 0.9rem calc(1rem + env(safe-area-inset-bottom));
+    box-shadow: none;
+    overscroll-behavior: contain;
+  }
+
+  #sheet:has(#manualEntryForm) .sheet-handle {
+    display: none;
+  }
+
+  #sheet:has(#manualEntryForm) .sheet-head {
+    top: calc(-0.7rem - env(safe-area-inset-top));
+    margin-top: calc(-0.7rem - env(safe-area-inset-top));
+    padding-top: calc(0.7rem + env(safe-area-inset-top));
+    padding-bottom: 0.65rem;
+  }
+}
