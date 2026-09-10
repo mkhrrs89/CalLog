@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v38';
+const CACHE = 'foodlog-v39';
 const ASSETS = [
   './',
   './index.html',
@@ -22,6 +22,8 @@ const ASSETS = [
   './desktop-fab-ripple-fix.css',
   './desktop-add-sheet-scroll-fix.css',
   './mobile-add-food-fullscreen.css',
+  './add-food-recent-collapse.js',
+  './add-food-recent-collapse.css',
   './saved-food-default-tag-authority.js',
   './foods-compact-typography.js',
   './foods-compact-typography.css',
