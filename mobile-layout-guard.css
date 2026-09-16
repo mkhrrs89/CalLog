@@ -1,0 +1,156 @@
+/* Defensive iPhone/mobile layout guard. Activated only by mobile-layout-guard.js. */
+html.foodlog-force-phone-layout {
+  width: var(--foodlog-phone-width) !important;
+  max-width: var(--foodlog-phone-width) !important;
+  overflow-x: hidden !important;
+}
+
+html.foodlog-force-phone-layout body {
+  width: var(--foodlog-phone-width) !important;
+  max-width: var(--foodlog-phone-width) !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+html.foodlog-force-phone-layout .app-shell {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0.8rem 0.85rem calc(var(--nav-h) + 1.25rem + env(safe-area-inset-bottom)) !important;
+}
+
+html.foodlog-force-phone-layout .desktop-nav {
+  display: none !important;
+}
+
+html.foodlog-force-phone-layout .bottom-nav {
+  display: grid !important;
+  left: 0 !important;
+  right: auto !important;
+  width: var(--foodlog-phone-width) !important;
+  max-width: var(--foodlog-phone-width) !important;
+}
+
+html.foodlog-force-phone-layout .fab {
+  right: auto !important;
+  left: calc(var(--foodlog-phone-width) - 72px) !important;
+  bottom: calc(var(--nav-h) + 0.85rem + env(safe-area-inset-bottom)) !important;
+}
+
+html.foodlog-force-phone-layout .grid.two,
+html.foodlog-force-phone-layout .grid.three,
+html.foodlog-force-phone-layout .form-grid.two {
+  grid-template-columns: 1fr !important;
+}
+
+html.foodlog-force-phone-layout .quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html.foodlog-force-phone-layout .stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html.foodlog-force-phone-layout .toast {
+  left: calc(var(--foodlog-phone-width) / 2) !important;
+  bottom: calc(var(--nav-h) + 1rem + env(safe-area-inset-bottom)) !important;
+  max-width: calc(var(--foodlog-phone-width) - 2rem) !important;
+}
+
+html.foodlog-force-phone-layout .backdrop,
+html.foodlog-force-phone-layout .modal-backdrop {
+  left: 0 !important;
+  right: auto !important;
+  width: var(--foodlog-phone-width) !important;
+  max-width: var(--foodlog-phone-width) !important;
+}
+
+html.foodlog-force-phone-layout .topbar {
+  gap: 0.45rem !important;
+}
+
+html.foodlog-force-phone-layout .brand {
+  flex: 0 0 auto !important;
+}
+
+html.foodlog-force-phone-layout .mobile-date-nav:not(.hidden) {
+  display: flex !important;
+}
+
+html.foodlog-force-phone-layout .mobile-date-nav.hidden {
+  display: none !important;
+}
+
+html.foodlog-force-phone-layout .page-head > .date-nav {
+  display: none !important;
+}
+
+html.foodlog-force-phone-layout .entries-section-title {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.32rem !important;
+}
+
+html.foodlog-force-phone-layout .entries-section-title > h2 {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  font-size: clamp(0.88rem, 3.7vw, 1rem) !important;
+  line-height: 1.05 !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions {
+  min-width: 0 !important;
+  margin-left: auto !important;
+  flex-wrap: nowrap !important;
+  gap: 0.28rem !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions .btn.small-btn {
+  padding: 0.4rem 0.46rem !important;
+  font-size: 0.72rem !important;
+  white-space: nowrap !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions .segmented {
+  min-width: 0 !important;
+  padding: 0.16rem !important;
+  gap: 0.1rem !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions .segmented button {
+  padding: 0.36rem 0.39rem !important;
+  font-size: 0.7rem !important;
+  white-space: nowrap !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions .entries-label-full {
+  display: none !important;
+}
+
+html.foodlog-force-phone-layout .entries-header-actions .entries-label-short {
+  display: inline !important;
+}
+
+/* Preserve the full-screen Add Food treatment even if iOS reports a desktop
+   layout viewport and therefore misses the normal max-width media query. */
+html.foodlog-force-phone-layout #sheetBackdrop:has(#manualEntryForm) {
+  align-items: stretch !important;
+  padding: 0 !important;
+}
+
+html.foodlog-force-phone-layout #sheet:has(#manualEntryForm) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: calc(0.7rem + env(safe-area-inset-top)) 0.9rem calc(1rem + env(safe-area-inset-bottom)) !important;
+  box-shadow: none !important;
+  overscroll-behavior: contain;
+}
+
+html.foodlog-force-phone-layout #sheet:has(#manualEntryForm) .sheet-handle {
+  display: none !important;
+}
