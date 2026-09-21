@@ -36,6 +36,7 @@ setTimeout(() => {
   const editorDefaults = payload => {
     const tagSelect = document.getElementById('foodEditDefaultMealTag');
     const confidenceSelect = document.getElementById('foodEditDefaultConfidence');
+    const servingLabelInput = document.getElementById('foodEditServingLabel');
     const existing = payload?.existing || null;
 
     const tag = tagSelect
@@ -52,10 +53,15 @@ setTimeout(() => {
       ? validConfidence(confidenceSelect.value)
       : validConfidence(payload?.defaultConfidence ?? defaultConfidenceFor(existing));
 
+    const servingLabel = servingLabelInput
+      ? String(servingLabelInput.value ?? '')
+      : String(payload?.servingLabel ?? existing?.servingLabel ?? '');
+
     return {
       defaultMealTagId: tag?.id || '',
       defaultMealTagName: tag?.name || '',
       defaultConfidence: confidence,
+      servingLabel,
     };
   };
 
@@ -83,8 +89,32 @@ setTimeout(() => {
     payload.defaultMealTagId = defaults.defaultMealTagId;
     payload.defaultMealTagName = defaults.defaultMealTagName;
     payload.defaultConfidence = defaults.defaultConfidence;
+    payload.servingLabel = defaults.servingLabel;
 
-    const result = await originalPersistFoodForm.call(this, payload);
+    // Force all hardened metadata onto the actual food write. Older wrappers
+    // may rebuild the food object and omit newer fields, so this sits outside
+    // that chain and guarantees the final IndexedDB write receives them.
+    const db = this.db;
+    const originalPut = db.put;
+    db.put = function(storeName, value) {
+      if (storeName === 'foods' && value) {
+        value = {
+          ...value,
+          defaultMealTagId: defaults.defaultMealTagId,
+          defaultMealTagName: defaults.defaultMealTagName,
+          defaultConfidence: defaults.defaultConfidence,
+          servingLabel: defaults.servingLabel,
+        };
+      }
+      return originalPut.call(this, storeName, value);
+    };
+
+    let result;
+    try {
+      result = await originalPersistFoodForm.call(this, payload);
+    } finally {
+      db.put = originalPut;
+    }
 
     // The original save normally refreshes cache. Refresh defensively in case a
     // future persistence path changes that behavior.
@@ -97,7 +127,8 @@ setTimeout(() => {
 
     const needsRepair = String(food.defaultMealTagId || '') !== defaults.defaultMealTagId
       || String(food.defaultMealTagName || '') !== defaults.defaultMealTagName
-      || validConfidence(food.defaultConfidence) !== defaults.defaultConfidence;
+      || validConfidence(food.defaultConfidence) !== defaults.defaultConfidence
+      || String(food.servingLabel ?? '') !== defaults.servingLabel;
 
     if (needsRepair) {
       await this.db.put('foods', {
