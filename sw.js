@@ -41,6 +41,8 @@ const ASSETS = [
   './recipe-builder.css',
   './recipe-builder-search.js',
   './recipe-builder-search.css',
+  './recipe-entry-instance.js',
+  './recipe-entry-instance.css',
   './recipe-decimal-amounts.js',
   './completed-days-chart.js',
   './calorie-target-chart.js',
