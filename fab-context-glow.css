@@ -8,7 +8,7 @@
   pointer-events: none;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 100ms ease;
+  will-change: left, top, width, height, background-position;
   background:
     radial-gradient(
       ellipse 62px 72px at var(--fab-context-x, 50%) var(--fab-context-y, 50%),
@@ -22,10 +22,4 @@
 
 #fabContextGlow.active {
   opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #fabContextGlow {
-    transition: none;
-  }
 }
