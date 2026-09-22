@@ -1,0 +1,31 @@
+/* Context-aware FAB glow.
+   The normal teal box-shadow remains untouched. This black halo is drawn only
+   over the part of the teal "Mark day complete" button underneath the FAB. */
+
+#fabContextGlow {
+  position: fixed;
+  z-index: 44;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 100ms ease;
+  background:
+    radial-gradient(
+      ellipse 62px 72px at var(--fab-context-x, 50%) var(--fab-context-y, 50%),
+      transparent 0 25px,
+      rgba(0, 0, 0, 0.78) 30px,
+      rgba(0, 0, 0, 0.5) 39px,
+      rgba(0, 0, 0, 0.22) 51px,
+      transparent 66px
+    );
+}
+
+#fabContextGlow.active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fabContextGlow {
+    transition: none;
+  }
+}
