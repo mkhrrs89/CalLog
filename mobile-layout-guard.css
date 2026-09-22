@@ -86,13 +86,15 @@ html.foodlog-force-phone-layout .page-head > .date-nav {
 }
 
 html.foodlog-force-phone-layout .entries-section-title {
+  flex-direction: column !important;
   flex-wrap: nowrap !important;
-  align-items: center !important;
-  gap: 0.32rem !important;
+  align-items: stretch !important;
+  gap: 0.5rem !important;
 }
 
 html.foodlog-force-phone-layout .entries-section-title > h2 {
   flex: 0 0 auto !important;
+  align-self: flex-start !important;
   margin: 0 !important;
   white-space: nowrap !important;
   font-size: clamp(0.88rem, 3.7vw, 1rem) !important;
@@ -100,8 +102,10 @@ html.foodlog-force-phone-layout .entries-section-title > h2 {
 }
 
 html.foodlog-force-phone-layout .entries-header-actions {
+  width: 100% !important;
   min-width: 0 !important;
-  margin-left: auto !important;
+  margin-left: 0 !important;
+  justify-content: flex-start !important;
   flex-wrap: nowrap !important;
   gap: 0.28rem !important;
 }
