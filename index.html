@@ -105,20 +105,24 @@
       .page-head > .date-nav { display: none; }
 
       .entries-section-title {
+        flex-direction: column;
         flex-wrap: nowrap;
-        align-items: center;
-        gap: 0.32rem;
+        align-items: stretch;
+        gap: 0.5rem;
       }
       .entries-section-title > h2 {
         flex: 0 0 auto;
+        align-self: flex-start;
         margin: 0;
         white-space: nowrap;
         font-size: clamp(0.88rem, 3.7vw, 1rem);
         line-height: 1.05;
       }
       .entries-header-actions {
+        width: 100%;
         min-width: 0;
-        margin-left: auto;
+        margin-left: 0;
+        justify-content: flex-start;
         flex-wrap: nowrap;
         gap: 0.28rem;
       }
