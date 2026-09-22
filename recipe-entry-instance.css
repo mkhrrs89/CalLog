@@ -1,0 +1,135 @@
+/* Per-log recipe ingredient editing. */
+
+.recipe-entry-instance-card {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.recipe-entry-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.46rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.7rem;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.recipe-entry-title {
+  margin-bottom: 0.8rem;
+}
+
+.recipe-entry-title h2 {
+  margin-bottom: 0.18rem;
+}
+
+.recipe-entry-heading {
+  align-items: flex-end;
+}
+
+.recipe-entry-ingredient-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.recipe-entry-ingredient-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.45fr) minmax(0, 1.15fr) minmax(82px, 0.52fr) auto auto;
+  align-items: end;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+
+.recipe-entry-ingredient-row label,
+.recipe-entry-food-field,
+.recipe-entry-portion-field,
+.recipe-entry-quantity-field {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.recipe-entry-ingredient-row input,
+.recipe-entry-ingredient-row select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.recipe-entry-summary {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.recipe-entry-total {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal:has(.recipe-entry-instance-form) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+.modal:has(.recipe-entry-instance-form) #modalContent,
+.modal:has(.recipe-entry-instance-form) .recipe-entry-instance-form,
+.modal:has(.recipe-entry-instance-form) .recipe-entry-ingredient-list,
+.modal:has(.recipe-entry-instance-form) .recipe-entry-ingredient-row {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .recipe-entry-ingredient-row {
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .recipe-entry-ingredient-row .recipe-ingredient-number {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .recipe-entry-food-field {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .recipe-entry-portion-field {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .recipe-entry-quantity-field {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+  }
+
+  .recipe-entry-ingredient-row .recipe-ingredient-subtotal {
+    grid-column: 1;
+    grid-row: 4;
+    justify-self: start;
+    text-align: left;
+  }
+
+  .recipe-entry-ingredient-row .recipe-remove-ingredient {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: end;
+  }
+
+  .recipe-entry-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
