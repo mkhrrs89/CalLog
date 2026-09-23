@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v47';
+const CACHE = 'foodlog-v48';
 const ASSETS = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ const ASSETS = [
   './mobile-layout-guard.css',
   './fab-context-glow.js',
   './fab-context-glow.css',
+  './new-food-modal-scroll-reset.js',
   './add-food-recent-collapse.js',
   './add-food-recent-collapse.css',
   './manual-entry-search-separation.js',
