@@ -27,6 +27,20 @@
     return { food, portions, selectedIndex, multiplier, calories };
   };
 
+  const displayPortionName = (entry, serving, selectedPortion = null) => {
+    const raw = selectedPortion?.name || entry.portionName || '';
+    if (raw && raw.toLowerCase() !== 'default') return raw;
+    return String(serving.food?.servingLabel || raw || 'serving');
+  };
+
+  const formatServingAmount = (multiplier, label) => {
+    const number = Number(multiplier);
+    const amount = Number.isFinite(number)
+      ? new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(number)
+      : String(multiplier || '');
+    return `${amount} ${String(label || 'serving').trim()}`.trim();
+  };
+
   const originalOpenEntryEditor = App.openEntryEditor;
   App.openEntryEditor = function(id) {
     originalOpenEntryEditor.call(this, id);
@@ -37,10 +51,12 @@
     const serving = entryServingSetup(entry);
     const portionField = serving.food
       ? `<label>Serving size<select id="editEntryPortion" onchange="App.updateEntryServingCalculation('${entry.id}')">${serving.portions.map((portion, index) => `<option value="${index}" ${index === serving.selectedIndex ? 'selected' : ''}>${this.esc(portion.name)} — ${this.formatNumber(portion.calories)} cal${portion.logged ? ' (logged)' : ''}</option>`).join('')}</select></label>`
-      : `<label>Serving name<input id="editEntryPortionName" value="${this.attr(entry.portionName || 'Manual')}" /></label><label>Calories per serving<input id="editEntryPortionCalories" type="number" min="0" step="0.1" value="${Number(serving.calories.toFixed(2))}" oninput="App.updateEntryServingCalculation('${entry.id}')" /></label>`;
+      : `<label>Serving name<input id="editEntryPortionName" value="${this.attr(entry.portionName || 'Manual')}" oninput="App.updateEntryServingCalculation('${entry.id}')" /></label><label>Calories per serving<input id="editEntryPortionCalories" type="number" min="0" step="0.1" value="${Number(serving.calories.toFixed(2))}" oninput="App.updateEntryServingCalculation('${entry.id}')" /></label>`;
     const card = document.createElement('div');
     card.className = 'card subtle';
-    card.innerHTML = `<h3>Serving</h3><div class="form-grid two">${portionField}<label>Number of servings<input id="editEntryMultiplier" type="number" min="0" step="0.1" value="${serving.multiplier}" oninput="App.updateEntryServingCalculation('${entry.id}')" /></label></div><div class="actions" style="margin-top:.55rem">${[0.5, 1, 1.5, 2, 3].map(value => `<button type="button" class="chip ${Math.abs(serving.multiplier - value) < 0.001 ? 'active' : ''}" onclick="App.setEntryMultiplier(${value},this,'${entry.id}')">${value}×</button>`).join('')}</div><div class="row space small" style="margin-top:.65rem"><span class="muted">Calculated total</span><strong id="editEntryCalculatedCalories">${this.formatNumber(entry.calories)} cal</strong></div><p class="field-help" style="margin:.35rem 0 0">Changing the serving recalculates calories for this log only. The calorie field above still works normally.</p>`;
+    const selectedPortion = serving.portions[serving.selectedIndex] || null;
+    const servingAmountLabel = displayPortionName(entry, serving, selectedPortion);
+    card.innerHTML = `<h3>Serving</h3><div class="form-grid two">${portionField}<label>Number of servings<input id="editEntryMultiplier" type="number" min="0" step="0.1" value="${serving.multiplier}" oninput="App.updateEntryServingCalculation('${entry.id}')" /></label></div><div class="actions" style="margin-top:.55rem">${[0.5, 1, 1.5, 2, 3].map(value => `<button type="button" class="chip ${Math.abs(serving.multiplier - value) < 0.001 ? 'active' : ''}" onclick="App.setEntryMultiplier(${value},this,'${entry.id}')">${value}×</button>`).join('')}</div><div class="row space small" style="margin-top:.65rem"><span class="muted">Serving amount</span><strong id="editEntryServingAmount">${this.esc(formatServingAmount(serving.multiplier, servingAmountLabel))}</strong></div><div class="row space small" style="margin-top:.45rem"><span class="muted">Calculated total</span><strong id="editEntryCalculatedCalories">${this.formatNumber(entry.calories)} cal</strong></div><p class="field-help" style="margin:.35rem 0 0">Changing the serving recalculates calories for this log only. The calorie field above still works normally.</p>`;
     form.insertBefore(card, tagLabel);
     const caloriesInput = document.getElementById('editEntryCalories');
     if (caloriesInput) caloriesInput.addEventListener('input', () => { caloriesInput.dataset.manual = 'true'; });
@@ -69,6 +85,16 @@
     if (caloriesInput) {
       caloriesInput.value = calories;
       caloriesInput.dataset.manual = 'false';
+    }
+    const servingAmount = document.getElementById('editEntryServingAmount');
+    if (servingAmount) {
+      const selectedPortion = select
+        ? (serving.portions[Number(select.value)] || serving.portions[serving.selectedIndex])
+        : null;
+      const label = select
+        ? displayPortionName(entry, serving, selectedPortion)
+        : (document.getElementById('editEntryPortionName')?.value.trim() || entry.portionName || 'serving');
+      servingAmount.textContent = formatServingAmount(multiplier, label);
     }
     const total = document.getElementById('editEntryCalculatedCalories');
     if (total) total.textContent = `${App.formatNumber(calories)} cal`;
