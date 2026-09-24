@@ -682,7 +682,7 @@ const App = {
         </label>
         <label>Multiplier
           <div class="actions">
-            ${[0.5, 1, 1.5, 2].map(value => `<button type="button" class="chip ${value === 1 ? 'active' : ''}" onclick="App.setMultiplier(${value},this,'${food.id}')">${value}×</button>`).join('')}
+            ${[0.5, 1, 1.5, 2, 3].map(value => `<button type="button" class="chip ${value === 1 ? 'active' : ''}" onclick="App.setMultiplier(${value},this,'${food.id}')">${value}×</button>`).join('')}
           </div>
           <input id="savedMultiplier" type="number" min="0" step="0.1" value="1" oninput="App.updateSavedFoodCalculation('${food.id}')" />
         </label>
