@@ -37,6 +37,13 @@ setTimeout(() => {
     return result;
   };
 
+  const originalOpenAddSheet = App.openAddSheet;
+  App.openAddSheet = async function(...args) {
+    const result = await originalOpenAddSheet.apply(this, args);
+    addHomemadeShortcut(document.getElementById('manualSource'));
+    return result;
+  };
+
   const originalOpenEntryEditor = App.openEntryEditor;
   App.openEntryEditor = function(id) {
     const result = originalOpenEntryEditor.call(this, id);
@@ -44,15 +51,17 @@ setTimeout(() => {
     const form = document.querySelector('#modalContent form');
     const noteLabel = document.getElementById('editEntryNote')?.closest('label');
 
-    if (!entry || !form || !noteLabel || document.getElementById('editEntrySource')) {
-      return result;
+    if (!entry || !form || !noteLabel) return result;
+
+    let sourceInput = document.getElementById('editEntrySource');
+    if (!sourceInput) {
+      const label = document.createElement('label');
+      label.innerHTML = `Source <span class="field-help">This logged instance only</span><input id="editEntrySource" value="${this.attr(entry.source || '')}" placeholder="Brand, restaurant, or homemade" />`;
+      form.insertBefore(label, noteLabel);
+      sourceInput = document.getElementById('editEntrySource');
     }
 
-    const label = document.createElement('label');
-    label.innerHTML = `Source <span class="field-help">This logged instance only</span><input id="editEntrySource" value="${this.attr(entry.source || '')}" placeholder="Brand, restaurant, or homemade" />`;
-    form.insertBefore(label, noteLabel);
-
-    addHomemadeShortcut(document.getElementById('editEntrySource'));
+    addHomemadeShortcut(sourceInput);
 
     // Source is editable above now, so remove the redundant read-only Source
     // line from the informational card if it exists.
