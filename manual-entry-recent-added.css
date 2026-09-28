@@ -1,0 +1,88 @@
+/* Recently CREATED saved foods shown under the lower New Entry name field. */
+
+.manual-name-recent-anchor {
+  position: relative;
+  z-index: 5;
+}
+
+.manual-recent-added-dropdown {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.28rem);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.manual-recent-added-dropdown[hidden] {
+  display: none;
+}
+
+.manual-recent-added-heading {
+  padding: 0.48rem 0.62rem 0.38rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--line);
+}
+
+.manual-recent-added-list {
+  display: grid;
+}
+
+.manual-recent-added-item {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  padding: 0.58rem 0.64rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.manual-recent-added-item:last-child {
+  border-bottom: 0;
+}
+
+.manual-recent-added-item:active,
+.manual-recent-added-item:focus-visible {
+  background: var(--accent-soft);
+}
+
+.manual-recent-added-main {
+  min-width: 0;
+  display: grid;
+  gap: 0.08rem;
+}
+
+.manual-recent-added-main strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.manual-recent-added-calories {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+@media (max-width: 719px) {
+  .manual-recent-added-dropdown {
+    left: 0;
+    right: 0;
+  }
+}
