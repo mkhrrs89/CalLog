@@ -278,7 +278,12 @@ const App = {
     const fab = document.getElementById('fab');
     fab.classList.toggle('hidden', this.view.page !== 'today');
     const app = document.getElementById('app');
-    app.innerHTML = '<div class="muted small">Loading…</div>';
+    // Keep the current screen visible while the next render is prepared.
+    // Replacing it with a temporary Loading state on every date change caused
+    // a visible two-step flash on mobile. Only show Loading on first startup.
+    if (!app.firstElementChild) {
+      app.innerHTML = '<div class="muted small">Loading…</div>';
+    }
     let html = '';
     if (this.view.page === 'today') html = await this.renderToday();
     if (this.view.page === 'foods') html = await this.renderFoods();
