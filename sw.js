@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v55';
+const CACHE = 'foodlog-v56';
 const ASSETS = [
   './',
   './index.html',
