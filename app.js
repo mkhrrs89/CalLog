@@ -1360,7 +1360,8 @@ const App = {
   },
 
   async renderStats() {
-    const range = Number(this.view.statsRange || 30);
+    const requestedRange = Number(this.view.statsRange);
+    const range = [0, 7, 30, 90].includes(requestedRange) ? requestedRange : 30;
     const allEntries = [...this.cache.entries];
     const today = this.localDate(this.today());
     let startDate;
