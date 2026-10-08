@@ -68,6 +68,13 @@
 
 .multi-copy-destination {
   margin-top: .85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.multi-copy-destination label {
+  min-width: 0;
 }
 
 .multi-copy-actions {
@@ -75,6 +82,10 @@
 }
 
 @media (max-width: 520px) {
+  .multi-copy-destination {
+    grid-template-columns: 1fr;
+  }
+
   .multi-copy-toolbar strong {
     width: 100%;
     margin-left: 0;
