@@ -81,6 +81,13 @@
         <label>Copy to date
           <input id="multiCopyDestination" type="date" value="${this.attr(defaultDestination(sourceDate))}" />
         </label>
+        <label>Destination meal
+          <select id="multiCopyMealTag">
+            <option value="__preserve__">Keep original meals</option>
+            <option value="">Untagged</option>
+            ${this.cache.tags.map(tag => `<option value="${this.attr(tag.id)}">${this.esc(tag.name)}</option>`).join('')}
+          </select>
+        </label>
       </div>
 
       <div class="actions multi-copy-actions">
@@ -132,6 +139,7 @@
   App.copySelectedEntriesToDate = async function() {
     const sourceDate = this.multiCopySourceDate || this.view.date;
     const destination = document.getElementById('multiCopyDestination')?.value || '';
+    const destinationMealTagId = document.getElementById('multiCopyMealTag')?.value ?? '__preserve__';
     const selectedIds = [...(this.multiCopySelection || [])];
 
     if (!selectedIds.length) return this.showToast('Select at least one entry');
@@ -143,11 +151,27 @@
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     if (!selected.length) return this.showToast('Those entries are no longer available');
 
+    const destinationTag = destinationMealTagId && destinationMealTagId !== '__preserve__'
+      ? this.cache.tags.find(tag => tag.id === destinationMealTagId)
+      : null;
+    if (destinationMealTagId && destinationMealTagId !== '__preserve__' && !destinationTag) {
+      return this.showToast('Choose a valid destination meal');
+    }
+
     const baseTime = Date.now();
     const copies = selected.map((entry, index) => {
       const timestamp = new Date(baseTime + index * 1000).toISOString();
+      const mealOverride = destinationMealTagId === '__preserve__'
+        ? {}
+        : {
+            mealTagId: destinationTag?.id || '',
+            mealTagSnapshot: destinationTag
+              ? { id: destinationTag.id, name: destinationTag.name, color: destinationTag.color }
+              : null,
+          };
       return {
         ...entry,
+        ...mealOverride,
         id: this.uid('entry'),
         date: destination,
         timestamp,
