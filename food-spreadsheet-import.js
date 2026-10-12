@@ -343,6 +343,20 @@
     return html;
   };
 
+  const originalRenderSettings = App.renderSettings;
+  App.renderSettings = async function(...args) {
+    let html = await originalRenderSettings.apply(this, args);
+    if (html.includes('App.openFoodImport()')) return html;
+
+    const jsonImportButton = '<button class="btn ghost" style="margin-top:.65rem" onclick="document.getElementById(\'importPicker\').click()">Import JSON backup</button>';
+    const foodImportButton = '<button class="btn ghost" style="margin-top:.65rem" onclick="App.openFoodImport()">Import foods spreadsheet</button>';
+
+    if (html.includes(jsonImportButton)) {
+      html = html.replace(jsonImportButton, `${jsonImportButton}${foodImportButton}`);
+    }
+    return html;
+  };
+
   App.openFoodImport = function() {
     this.foodImportState = null;
     const mealTags = this.cache.tags.map(tag => tag.name).join(', ') || 'None defined';
