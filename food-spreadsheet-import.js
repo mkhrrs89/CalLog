@@ -9,6 +9,7 @@
     calories: ['calories', 'calorie', 'cal', 'cals', 'kcal'],
     servingLabel: ['serving_label', 'serving', 'serving_name', 'unit'],
     defaultMealTag: ['default_meal_tag', 'default_meal', 'meal_tag', 'meal', 'default_tag'],
+    defaultConfidence: ['default_confidence', 'confidence', 'confidence_level', 'default_conf'],
     pinned: ['pinned', 'pin', 'quick_log', 'quicklog'],
     source: ['source', 'brand', 'restaurant'],
     folder: ['folder'],
@@ -47,6 +48,13 @@
     if (['yes', 'y', 'true', '1', 'x', 'pinned'].includes(text)) return { value: true };
     if (['no', 'n', 'false', '0', 'unpinned'].includes(text)) return { value: false };
     return { error: `Pinned must be yes/no, true/false, 1/0, or blank` };
+  };
+
+  const parseConfidence = value => {
+    const text = textValue(value).toLowerCase();
+    if (!text || ['none', 'not specified', 'unspecified'].includes(text)) return { value: '' };
+    if (['high', 'medium', 'low'].includes(text)) return { value: text };
+    return { error: 'Default confidence must be High, Medium, Low, or blank' };
   };
 
   const parsePortions = (value, uid) => {
@@ -298,12 +306,19 @@
       const pinnedResult = parsePinned(values.pinned);
       if (pinnedResult.error) errors.push(pinnedResult.error);
 
+      const confidenceResult = parseConfidence(values.defaultConfidence);
+      if (confidenceResult.error) errors.push(confidenceResult.error);
+
       let defaultMealTagId = '';
+      let defaultMealTagName = '';
       const requestedTag = textValue(values.defaultMealTag);
       if (requestedTag) {
         const tag = tagsById.get(requestedTag) || tagsByName.get(requestedTag.toLowerCase());
         if (!tag) errors.push(`Default meal tag “${requestedTag}” is not defined in Settings`);
-        else defaultMealTagId = tag.id;
+        else {
+          defaultMealTagId = tag.id;
+          defaultMealTagName = tag.name;
+        }
       }
 
       const portionResult = parsePortions(values.portions, prefix => App.uid(prefix));
@@ -318,6 +333,8 @@
           calories: Number.isFinite(calorieNumber) ? calorieNumber : 0,
           servingLabel: textValue(values.servingLabel),
           defaultMealTagId,
+          defaultMealTagName,
+          defaultConfidence: confidenceResult.value || '',
           pinned: pinnedResult.value || false,
           source: textValue(values.source),
           folder: textValue(values.folder),
@@ -368,8 +385,8 @@
       <p>Import an Excel <strong>.xlsx</strong> file or CSV. The first worksheet is used. You’ll get a preview before anything is saved.</p>
       <div class="card subtle food-import-help">
         <strong>Supported columns</strong>
-        <div class="food-import-columns">name · calories · serving_label · default_meal_tag · pinned · source · folder · tags · aliases · portions · notes</div>
-        <div class="field-help">Only <strong>name</strong> and <strong>calories</strong> are required. Tags and aliases can be separated with commas or semicolons. Portions use <strong>Label | Calories</strong>, separated by semicolons. Default meal tags must match an existing meal tag name.</div>
+        <div class="food-import-columns">name · calories · serving_label · default_meal_tag · default_confidence · pinned · source · folder · tags · aliases · portions · notes</div>
+        <div class="field-help">Only <strong>name</strong> and <strong>calories</strong> are required. Tags and aliases can be separated with commas or semicolons. Portions use <strong>Label | Calories</strong>, separated by semicolons. Default meal tags must match an existing meal tag name. Default confidence accepts High, Medium, Low, or blank.</div>
         <div class="field-help" style="margin-top:.35rem">Current meal tags: ${this.esc(mealTags)}</div>
       </div>
       <div class="actions" style="margin:.8rem 0">
@@ -395,10 +412,10 @@
 
   App.downloadFoodImportTemplate = function() {
     const tag = this.cache.tags[0]?.name || '';
-    const headers = ['name','calories','serving_label','default_meal_tag','pinned','source','folder','tags','aliases','portions','notes'];
+    const headers = ['name','calories','serving_label','default_meal_tag','default_confidence','pinned','source','folder','tags','aliases','portions','notes'];
     const examples = [
-      ['Example Chicken Breast',165,'100 g',tag,'no','Homemade','Meal Prep','protein; lunch','chicken breast','1 oz | 47; 4 oz | 187','Optional saved note'],
-      ['Example Peanut Butter',190,'2 tbsp','','yes','Example Brand','','snack; pantry','PB','1 tbsp | 95',''],
+      ['Example Chicken Breast',165,'100 g',tag,'high','no','Homemade','Meal Prep','protein; lunch','chicken breast','1 oz | 47; 4 oz | 187','Optional saved note'],
+      ['Example Peanut Butter',190,'2 tbsp','','medium','yes','Example Brand','','snack; pantry','PB','1 tbsp | 95',''],
     ];
     const csv = [headers, ...examples].map(row => row.map(escapeCsv).join(',')).join('\r\n');
     this.downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'foodlog-food-import-template.csv');
@@ -477,7 +494,7 @@
       </div>
       <div class="food-import-table-wrap">
         <table class="food-import-table">
-          <thead><tr><th>Row</th><th>Name</th><th>Calories</th><th>Serving</th><th>Default meal</th><th>Status</th></tr></thead>
+          <thead><tr><th>Row</th><th>Name</th><th>Calories</th><th>Serving</th><th>Default meal</th><th>Confidence</th><th>Status</th></tr></thead>
           <tbody>${shown.map(row => {
             const tag = this.cache.tags.find(item => item.id === row.food.defaultMealTagId);
             return `<tr class="${row.className}">
@@ -486,6 +503,7 @@
               <td>${this.formatNumber(row.food.calories)}</td>
               <td>${this.esc(row.food.servingLabel || '—')}</td>
               <td>${this.esc(tag?.name || '—')}</td>
+              <td>${this.esc(row.food.defaultConfidence ? row.food.defaultConfidence[0].toUpperCase() + row.food.defaultConfidence.slice(1) : '—')}</td>
               <td>${this.esc(row.status)}</td>
             </tr>`;
           }).join('')}</tbody>
@@ -533,6 +551,8 @@
         calories: row.food.calories,
         servingLabel: row.food.servingLabel,
         defaultMealTagId: row.food.defaultMealTagId,
+        defaultMealTagName: row.food.defaultMealTagName,
+        defaultConfidence: row.food.defaultConfidence,
         pinned: row.food.pinned,
         source: row.food.source,
         folder: row.food.folder,
