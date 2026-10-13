@@ -1209,6 +1209,22 @@ const App = {
         </div>
         <label class="checkbox-line"><input id="foodEditPinned" type="checkbox" ${food?.pinned ? 'checked' : ''} /> Pin on Today screen</label>
         <div class="form-grid two">
+          <label>Default meal tag <span class="field-help">Applied automatically when logged</span>
+            <select id="foodEditDefaultMealTag">
+              <option value="">No default — log as Untagged</option>
+              ${this.cache.tags.map(tag => `<option value="${this.attr(tag.id)}" ${tag.id === food?.defaultMealTagId || (!food?.defaultMealTagId && String(tag.name || '').trim().toLowerCase() === String(food?.defaultMealTagName || '').trim().toLowerCase()) ? 'selected' : ''}>${this.esc(tag.name)}</option>`).join('')}
+            </select>
+          </label>
+          <label>Default confidence <span class="field-help">Applied automatically when logged</span>
+            <select id="foodEditDefaultConfidence">
+              <option value="" ${!['high','medium','low'].includes(String(food?.defaultConfidence || '').toLowerCase()) ? 'selected' : ''}>Not specified</option>
+              <option value="high" ${String(food?.defaultConfidence || '').toLowerCase() === 'high' ? 'selected' : ''}>High</option>
+              <option value="medium" ${String(food?.defaultConfidence || '').toLowerCase() === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="low" ${String(food?.defaultConfidence || '').toLowerCase() === 'low' ? 'selected' : ''}>Low</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-grid two">
           <label>Source <span class="field-help">Optional</span><input id="foodEditSource" value="${this.attr(food?.source || '')}" placeholder="Brand, restaurant, or homemade" /></label>
           <label>Folder <span class="field-help">Optional</span><input id="foodEditFolder" value="${this.attr(food?.folder || '')}" placeholder="Meal Prep" /></label>
         </div>
@@ -1242,6 +1258,10 @@ const App = {
     if (!name) throw new Error('Food name is required');
     if (!Number.isInteger(calories) || calories < 0) throw new Error('Enter whole-number calories of 0 or more');
     const portions = this.parsePortions(document.getElementById('foodEditPortions')?.value || '');
+    const defaultMealTagId = document.getElementById('foodEditDefaultMealTag')?.value || '';
+    const defaultMealTag = this.cache.tags.find(tag => tag.id === defaultMealTagId) || null;
+    const requestedConfidence = String(document.getElementById('foodEditDefaultConfidence')?.value || '').trim().toLowerCase();
+    const defaultConfidence = ['high', 'medium', 'low'].includes(requestedConfidence) ? requestedConfidence : '';
     return {
       id,
       existing,
@@ -1253,6 +1273,9 @@ const App = {
       tags: [...new Set((document.getElementById('foodEditTags')?.value || '').split(',').map(value => value.trim()).filter(Boolean))],
       aliases: [...new Set((document.getElementById('foodEditAliases')?.value || '').split(',').map(value => value.trim()).filter(Boolean))],
       portions,
+      defaultMealTagId: defaultMealTag?.id || '',
+      defaultMealTagName: defaultMealTag?.name || '',
+      defaultConfidence,
     };
   },
 
@@ -1307,6 +1330,11 @@ const App = {
       tags: payload.tags,
       aliases: payload.aliases,
       portions: payload.portions,
+      defaultMealTagId: payload.defaultMealTagId || '',
+      defaultMealTagName: payload.defaultMealTagName || '',
+      defaultConfidence: ['high', 'medium', 'low'].includes(String(payload.defaultConfidence || '').toLowerCase())
+        ? String(payload.defaultConfidence).toLowerCase()
+        : '',
       useCount: existing?.useCount || 0,
       lastUsedAt: existing?.lastUsedAt || '',
       createdAt: existing?.createdAt || now,
