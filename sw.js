@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v60';
+const CACHE = 'foodlog-v61';
 const ASSETS = [
   './',
   './index.html',
@@ -102,18 +102,56 @@ const withFoodLibraryFilters = async response => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request)
-      .then(async response => {
-        const served = event.request.mode === 'navigate' ? await withFoodLibraryFilters(response) : response;
-        const copy = served.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        return served;
-      })
-      .catch(() => caches.match(event.request).then(async cached => {
-        if (cached) return event.request.mode === 'navigate' ? withFoodLibraryFilters(cached) : cached;
-        const fallback = await caches.match('./index.html');
-        return fallback ? withFoodLibraryFilters(fallback) : fallback;
-      }))
-  );
+
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  const updateCache = async () => {
+    const response = await fetch(event.request);
+    if (!response || !response.ok) return response;
+    const served = event.request.mode === 'navigate'
+      ? await withFoodLibraryFilters(response)
+      : response;
+    const cache = await caches.open(CACHE);
+    await cache.put(event.request, served.clone());
+    return served;
+  };
+
+  const cachedResponse = async () => {
+    const cache = await caches.open(CACHE);
+    let cached = await cache.match(event.request);
+    if (event.request.mode === 'navigate' && !cached) {
+      cached = await cache.match('./index.html');
+    }
+    return { cache, cached };
+  };
+
+  event.respondWith((async () => {
+    const { cache, cached } = await cachedResponse();
+    if (cached) {
+      return event.request.mode === 'navigate'
+        ? withFoodLibraryFilters(cached)
+        : cached;
+    }
+
+    try {
+      return await updateCache();
+    } catch {
+      if (event.request.mode === 'navigate') {
+        const fallback = await cache.match('./index.html');
+        return fallback ? withFoodLibraryFilters(fallback) : Response.error();
+      }
+      return Response.error();
+    }
+  })());
+
+  // Once an asset is cached, don't make startup wait for GitHub Pages.
+  // Refresh the cached copy in the background instead.
+  event.waitUntil((async () => {
+    const { cached } = await cachedResponse();
+    if (cached) await updateCache();
+  })().catch(() => {}));
 });
