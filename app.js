@@ -222,10 +222,12 @@ const App = {
       importMode: 'merge',
       version: 1,
     };
-    for (const [key, value] of Object.entries(defaults)) {
-      const existing = await this.db.get('settings', key);
-      if (!existing) await this.db.put('settings', { key, value });
-    }
+    const rows = await this.db.getAll('settings');
+    const existingKeys = new Set(rows.map(row => row.key));
+    const missing = Object.entries(defaults)
+      .filter(([key]) => !existingKeys.has(key))
+      .map(([key, value]) => ({ key, value }));
+    if (missing.length) await this.db.putMany('settings', missing);
   },
 
   async refreshCache() {
