@@ -313,6 +313,16 @@
           aliases: payload.aliases,
           portions: payload.portions,
           notes: payload.notes || '',
+          servingLabel: String(payload.servingLabel ?? existing?.servingLabel ?? ''),
+          defaultMealTagId: payload.defaultMealTagId ?? existing?.defaultMealTagId ?? '',
+          defaultMealTagName: payload.defaultMealTagName ?? existing?.defaultMealTagName ?? '',
+          defaultConfidence: ['high', 'medium', 'low'].includes(String(payload.defaultConfidence ?? existing?.defaultConfidence ?? '').toLowerCase())
+            ? String(payload.defaultConfidence ?? existing?.defaultConfidence).toLowerCase()
+            : '',
+          quickLogServingMode: ['ask', 'default', 'saved'].includes(String(payload.quickLogServingMode ?? existing?.quickLogServingMode ?? ''))
+            ? String(payload.quickLogServingMode ?? existing?.quickLogServingMode)
+            : 'ask',
+          quickLogPortionName: String(payload.quickLogPortionName ?? existing?.quickLogPortionName ?? ''),
           useCount: existing?.useCount || 0,
           lastUsedAt: existing?.lastUsedAt || '',
           createdAt: existing?.createdAt || now,
