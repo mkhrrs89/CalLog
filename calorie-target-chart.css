@@ -27,3 +27,9 @@
   border-top: 2px dashed #f97316;
   flex: 0 0 auto;
 }
+
+
+/* Give the primary Stats trend enough vertical room to be readable on mobile. */
+svg.chart.daily-calories-chart {
+  height: 340px;
+}
