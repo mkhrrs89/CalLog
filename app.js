@@ -1553,7 +1553,7 @@ const App = {
   lineChart(series, unit = '') {
     if (!series.length) return '<div class="empty-state">No data yet.</div>';
     const width = Math.max(360, Math.min(980, series.length * 28));
-    const height = 210;
+    const height = unit === 'calories' ? 340 : 210;
     const pad = { l: 42, r: 12, t: 14, b: 34 };
     const max = Math.max(1, ...series.map(item => item.value));
     const x = index => pad.l + (series.length === 1 ? 0 : index / (series.length - 1) * (width - pad.l - pad.r));
@@ -1562,7 +1562,7 @@ const App = {
     const area = `${pad.l},${height - pad.b} ${points} ${x(series.length - 1)},${height - pad.b}`;
     const labelEvery = Math.max(1, Math.ceil(series.length / 6));
     return `
-      <svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${this.esc(unit)} chart">
+      <svg class="chart${unit === 'calories' ? ' daily-calories-chart' : ''}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${this.esc(unit)} chart">
         ${[0, .25, .5, .75, 1].map(tick => {
           const yy = y(max * tick);
           return `<line class="chart-grid" x1="${pad.l}" y1="${yy}" x2="${width - pad.r}" y2="${yy}"/><text class="chart-label" x="${pad.l - 6}" y="${yy + 3}" text-anchor="end">${this.formatNumber(max * tick)}</text>`;
