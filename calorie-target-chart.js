@@ -61,7 +61,7 @@
     }
 
     const width = Math.max(360, Math.min(980, series.length * 28));
-    const height = 210;
+    const height = 340;
     const pad = { l: 42, r: 12, t: 14, b: 34 };
     const max = Math.max(1, target, ...series.map(item => item.value));
     const x = index => pad.l + (series.length === 1 ? 0 : index / (series.length - 1) * (width - pad.l - pad.r));
@@ -73,7 +73,7 @@
     const targetLabelY = targetY < pad.t + 15 ? targetY + 14 : targetY - 6;
 
     return `
-      <svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily calories chart with a target of ${this.attr(target)} calories">
+      <svg class="chart daily-calories-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily calories chart with a target of ${this.attr(target)} calories">
         ${[0, .25, .5, .75, 1].map(tick => {
           const yy = y(max * tick);
           return `<line class="chart-grid" x1="${pad.l}" y1="${yy}" x2="${width - pad.r}" y2="${yy}"/><text class="chart-label" x="${pad.l - 6}" y="${yy + 3}" text-anchor="end">${this.formatNumber(max * tick)}</text>`;
