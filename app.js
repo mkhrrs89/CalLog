@@ -322,6 +322,7 @@ const App = {
     const total = entries.reduce((sum, item) => sum + item.calories, 0);
     const day = this.dayRecord();
     const pinned = this.cache.foods.filter(food => food.pinned).sort((a, b) => (b.useCount || 0) - (a.useCount || 0)).slice(0, 8);
+    const frequentRecent = this.frequentRecentQuickItems();
     const scaleMax = Math.max(500, Math.ceil(Math.max(total, 1) / 500) * 500);
     const percent = Math.min(100, total / scaleMax * 100);
     const today = this.today();
@@ -368,6 +369,11 @@ const App = {
               ${pinned.map(food => this.quickFoodHtml(food)).join('')}
             </div>` : `
             <div class="empty-state">Pin foods in your database and they’ll appear here for one-tap logging.</div>`}
+          ${frequentRecent.length ? `
+            <div class="group-head" style="margin-top:.9rem">Most logged · last 30 days</div>
+            <div class="quick-grid">
+              ${frequentRecent.map(item => this.frequentQuickItemHtml(item)).join('')}
+            </div>` : ''}
         </section>
 
         <section class="section">
@@ -401,6 +407,92 @@ const App = {
         </button>
         <button class="quick-food-more" onclick="App.openSavedFoodLogger('${food.id}')" aria-label="Portions and multiplier">⋯</button>
       </div>`;
+  },
+
+  frequentRecentQuickItems() {
+    const endKey = this.today();
+    const startKey = this.shiftDate(endKey, -29);
+    const foodsById = new Map(this.cache.foods.map(food => [food.id, food]));
+    const foodsByName = new Map();
+
+    for (const food of this.cache.foods) {
+      const key = this.normalizeName(food.name);
+      if (key && !foodsByName.has(key)) foodsByName.set(key, food);
+    }
+
+    const grouped = new Map();
+    for (const entry of this.cache.entries) {
+      if (!entry?.name || entry.date < startKey || entry.date > endKey) continue;
+
+      const normalizedName = this.normalizeName(entry.name);
+      if (!normalizedName) continue;
+
+      const savedFood = (entry.foodId && foodsById.get(entry.foodId))
+        || foodsByName.get(normalizedName)
+        || null;
+
+      if (savedFood?.pinned) continue;
+
+      const key = savedFood ? `food:${savedFood.id}` : `history:${normalizedName}`;
+      const timestamp = entry.timestamp || entry.updatedAt || entry.createdAt || '';
+      const existing = grouped.get(key) || {
+        key,
+        food: savedFood,
+        name: savedFood?.name || entry.name,
+        count: 0,
+        latest: '',
+        latestEntry: null,
+      };
+
+      existing.count += 1;
+      if (!existing.latest || new Date(timestamp || 0) >= new Date(existing.latest || 0)) {
+        existing.latest = timestamp;
+        existing.latestEntry = entry;
+        if (!savedFood) existing.name = entry.name;
+      }
+      grouped.set(key, existing);
+    }
+
+    return [...grouped.values()]
+      .sort((a, b) => b.count - a.count
+        || new Date(b.latest || 0) - new Date(a.latest || 0)
+        || String(a.name || '').localeCompare(String(b.name || '')))
+      .slice(0, 10);
+  },
+
+  frequentQuickItemHtml(item) {
+    if (item.food) return this.quickFoodHtml(item.food);
+
+    const entry = item.latestEntry;
+    if (!entry) return '';
+
+    return `
+      <div class="quick-food">
+        <button class="quick-food-main" onclick="App.logFrequentHistoryItem('${this.attr(item.key)}')">
+          <strong>${this.esc(item.name || 'Unnamed Food')}</strong>
+          <span class="tiny muted">${this.formatNumber(entry.calories)} cal · ${item.count}× in 30d</span>
+        </button>
+      </div>`;
+  },
+
+  async logFrequentHistoryItem(key) {
+    const item = this.frequentRecentQuickItems().find(candidate => candidate.key === key);
+    const source = item?.latestEntry;
+    if (!source) return this.showToast('That recent item is no longer available');
+
+    const now = new Date().toISOString();
+    const entry = {
+      ...structuredClone(source),
+      id: this.uid('entry'),
+      date: this.view.date,
+      timestamp: now,
+      foodId: '',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await this.db.put('entries', entry);
+    await this.afterLog(entry);
   },
 
   entriesHtml(entries) {
