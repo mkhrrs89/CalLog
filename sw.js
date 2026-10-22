@@ -1,4 +1,4 @@
-const CACHE = 'foodlog-v64';
+const CACHE = 'foodlog-v65';
 const ASSETS = [
   './',
   './index.html',
@@ -81,8 +81,6 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
-      .then(() => self.clients.matchAll({ type: 'window' }))
-      .then(clients => Promise.all(clients.map(client => client.navigate(client.url))))
   );
 });
 
@@ -109,28 +107,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const updateCache = async () => {
-    const response = await fetch(event.request);
-    if (!response || !response.ok) return response;
-    const served = event.request.mode === 'navigate'
-      ? await withFoodLibraryFilters(response)
-      : response;
-    const cache = await caches.open(CACHE);
-    await cache.put(event.request, served.clone());
-    return served;
-  };
-
-  const cachedResponse = async () => {
+  event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     let cached = await cache.match(event.request);
+
     if (event.request.mode === 'navigate' && !cached) {
       cached = await cache.match('./index.html');
     }
-    return { cache, cached };
-  };
 
-  event.respondWith((async () => {
-    const { cache, cached } = await cachedResponse();
     if (cached) {
       return event.request.mode === 'navigate'
         ? withFoodLibraryFilters(cached)
@@ -138,7 +122,11 @@ self.addEventListener('fetch', event => {
     }
 
     try {
-      return await updateCache();
+      const response = await fetch(event.request);
+      if (!response || !response.ok) return response;
+      return event.request.mode === 'navigate'
+        ? withFoodLibraryFilters(response)
+        : response;
     } catch {
       if (event.request.mode === 'navigate') {
         const fallback = await cache.match('./index.html');
@@ -147,11 +135,4 @@ self.addEventListener('fetch', event => {
       return Response.error();
     }
   })());
-
-  // Once an asset is cached, don't make startup wait for GitHub Pages.
-  // Refresh the cached copy in the background instead.
-  event.waitUntil((async () => {
-    const { cached } = await cachedResponse();
-    if (cached) await updateCache();
-  })().catch(() => {}));
 });
