@@ -129,8 +129,11 @@
         <button class="food-row-main" onclick="${this.view.foodBulk
           ? `App.toggleFoodSelected('${food.id}')`
           : `App.openRecipeBuilder('${food.id}')`}">
-          <strong class="food-name">${this.esc(food.name)}</strong>
-          <div class="food-row-meta">${this.esc(meta)}</div>
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text">
+            <strong class="food-name">${this.esc(food.name)}</strong>
+            <span class="food-row-meta">${this.esc(meta)}</span>
+          </span>
         </button>
         <strong>${this.formatNumber(food.calories)} cal</strong>
       </div>`;
