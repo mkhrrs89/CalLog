@@ -70,7 +70,10 @@
     results.innerHTML = foods.length
       ? foods.map(food => `
           <button class="recipe-food-search-result" type="button" data-food-id="${App.attr(food.id)}">
-            <span class="recipe-food-search-result-name">${App.esc(food.name)}</span>
+            <span class="food-icon-content">
+              ${App.foodIconHtml(food)}
+              <span class="recipe-food-search-result-name food-icon-text">${App.esc(food.name)}</span>
+            </span>
             <span class="recipe-food-search-result-calories">${App.formatNumber(food.calories)} cal</span>
           </button>`).join('')
       : '<div class="recipe-food-search-empty">No matching saved foods</div>';
