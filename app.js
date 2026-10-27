@@ -203,6 +203,14 @@ const App = {
 
   attr(value) { return this.esc(value).replace(/`/g, '&#96;'); },
 
+  // Reserved square for future food/recipe artwork; intentionally empty.
+  // The saved-food ID keeps each slot addressable when icons are added later.
+  foodIconHtml(food = null) {
+    const id = food?.id || food?.foodId || '';
+    const kind = food?.recipe ? ' data-food-kind="recipe"' : '';
+    return `<span class="food-icon-slot" aria-hidden="true"${id ? ` data-food-id="${this.attr(id)}"` : ''}${kind}></span>`;
+  },
+
   normalizeName(value) {
     return String(value || '')
       .toLowerCase()
@@ -402,8 +410,11 @@ const App = {
     return `
       <div class="quick-food">
         <button class="quick-food-main" onclick="App.logFoodQuick('${food.id}')">
-          <strong>${this.esc(food.name)}</strong>
-          <span class="tiny muted">${this.formatNumber(food.calories)} cal</span>
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text">
+            <strong>${this.esc(food.name)}</strong>
+            <span class="tiny muted">${this.formatNumber(food.calories)} cal</span>
+          </span>
         </button>
         <button class="quick-food-more" onclick="App.openSavedFoodLogger('${food.id}')" aria-label="Portions and multiplier">⋯</button>
       </div>`;
@@ -479,8 +490,11 @@ const App = {
     return `
       <div class="quick-food">
         <button class="quick-food-main" onclick="App.logFrequentHistoryItem('${this.attr(item.key)}')">
-          <strong>${this.esc(item.name || 'Unnamed Food')}</strong>
-          <span class="tiny muted">${this.formatNumber(entry.calories)} cal · ${item.count}× in 30d</span>
+          ${this.foodIconHtml(entry)}
+          <span class="food-icon-text">
+            <strong>${this.esc(item.name || 'Unnamed Food')}</strong>
+            <span class="tiny muted">${this.formatNumber(entry.calories)} cal · ${item.count}× in 30d</span>
+          </span>
         </button>
       </div>`;
   },
@@ -528,6 +542,7 @@ const App = {
     const color = currentTag?.color || entry.mealTagSnapshot?.color || 'transparent';
     return `
       <button class="entry-row" style="border-left-color:${this.attr(color)}" onclick="App.openEntryEditor('${entry.id}')">
+        ${this.foodIconHtml(entry)}
         <span class="food-name">${this.esc(entry.name || 'Unnamed Food')}</span>
         <span class="calories">${this.formatNumber(entry.calories)} cal</span>
       </button>`;
@@ -676,7 +691,10 @@ const App = {
   searchResultFoodHtml(food) {
     return `
       <button class="search-result" onclick="App.chooseSavedFood('${food.id}')">
-        <span><strong>${this.esc(food.name)}</strong><span class="tiny muted" style="display:block">${food.source ? this.esc(food.source) + ' · ' : ''}${this.formatNumber(food.calories)} cal</span></span>
+        <span class="food-icon-content">
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text"><strong>${this.esc(food.name)}</strong><span class="tiny muted" style="display:block">${food.source ? this.esc(food.source) + ' · ' : ''}${this.formatNumber(food.calories)} cal</span></span>
+        </span>
         <span>${food.pinned ? '<span class="star">★</span>' : ''}</span>
       </button>`;
   },
@@ -684,7 +702,10 @@ const App = {
   searchResultHistoryHtml(item) {
     return `
       <button class="search-result" onclick="App.prefillFromHistory('${this.attr(item.name)}',${item.calories})">
-        <span><strong>${this.esc(item.name || 'Unnamed Food')}</strong><span class="tiny muted" style="display:block">Frequently logged unsaved · ${item.count}×</span></span>
+        <span class="food-icon-content">
+          ${this.foodIconHtml()}
+          <span class="food-icon-text"><strong>${this.esc(item.name || 'Unnamed Food')}</strong><span class="tiny muted" style="display:block">Frequently logged unsaved · ${item.count}×</span></span>
+        </span>
         <strong>${this.formatNumber(item.calories)}</strong>
       </button>`;
   },
@@ -1210,8 +1231,11 @@ const App = {
       <div class="food-row">
         ${this.view.foodBulk ? `<input type="checkbox" ${selected ? 'checked' : ''} onchange="App.toggleFoodSelected('${food.id}',this.checked)" aria-label="Select ${this.attr(food.name)}" />` : `<span class="star">${food.pinned ? '★' : ''}</span>`}
         <button class="food-row-main" onclick="${this.view.foodBulk ? `App.toggleFoodSelected('${food.id}')` : `App.openFoodEditor('${food.id}')`}">
-          <strong class="food-name">${this.esc(food.name)}</strong>
-          <div class="food-row-meta">${meta ? this.esc(meta) : `${food.useCount || 0} uses`}</div>
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text">
+            <strong class="food-name">${this.esc(food.name)}</strong>
+            <span class="food-row-meta">${meta ? this.esc(meta) : `${food.useCount || 0} uses`}</span>
+          </span>
         </button>
         <strong>${this.formatNumber(food.calories)} cal</strong>
       </div>`;
