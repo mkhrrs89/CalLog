@@ -321,8 +321,8 @@ const App = {
     const entries = this.entriesForDate();
     const total = entries.reduce((sum, item) => sum + item.calories, 0);
     const day = this.dayRecord();
-    const pinned = this.cache.foods.filter(food => food.pinned).sort((a, b) => (b.useCount || 0) - (a.useCount || 0)).slice(0, 8);
-    const frequentRecent = this.frequentRecentQuickItems(pinned);
+    const pinned = this.cache.foods.filter(food => food.pinned).sort((a, b) => (b.useCount || 0) - (a.useCount || 0));
+    const frequentRecent = this.frequentRecentQuickItems();
     const scaleMax = Math.max(500, Math.ceil(Math.max(total, 1) / 500) * 500);
     const percent = Math.min(100, total / scaleMax * 100);
     const today = this.today();
@@ -409,7 +409,7 @@ const App = {
       </div>`;
   },
 
-  frequentRecentQuickItems(quickLogFoods = null) {
+  frequentRecentQuickItems() {
     const endKey = this.today();
     const startKey = this.shiftDate(endKey, -29);
     const foodsById = new Map(this.cache.foods.map(food => [food.id, food]));
@@ -420,21 +420,13 @@ const App = {
       if (key && !foodsByName.has(key)) foodsByName.set(key, food);
     }
 
-    // Quick Log always takes precedence. Exclude the exact foods currently
-    // rendered there, using both IDs and normalized names so older/manual log
-    // entries cannot create a duplicate in the 30-day section.
-    const renderedQuickLogFoods = Array.isArray(quickLogFoods)
-      ? quickLogFoods
-      : this.cache.foods
-          .filter(food => food.pinned)
-          .sort((a, b) => (b.useCount || 0) - (a.useCount || 0))
-          .slice(0, 8);
-
-    const quickLogIds = new Set(renderedQuickLogFoods.map(food => food.id).filter(Boolean));
+    // Every pinned food belongs to Quick Log, not the 30-day list.
+    // Use the full set of pinned foods (never the former 8-item display cap),
+    // and match both IDs and normalized names to catch historical/manual logs.
+    const quickLogFoods = this.cache.foods.filter(food => food.pinned);
+    const quickLogIds = new Set(quickLogFoods.map(food => food.id).filter(Boolean));
     const quickLogNames = new Set(
-      renderedQuickLogFoods
-        .map(food => this.normalizeName(food.name))
-        .filter(Boolean)
+      quickLogFoods.map(food => this.normalizeName(food.name)).filter(Boolean)
     );
 
     const grouped = new Map();
@@ -442,14 +434,14 @@ const App = {
       if (!entry?.name || entry.date < startKey || entry.date > endKey) continue;
 
       const normalizedName = this.normalizeName(entry.name);
-      if (!normalizedName || quickLogNames.has(normalizedName)) continue;
+      if (!normalizedName || quickLogNames.has(normalizedName) || quickLogIds.has(entry.foodId)) continue;
 
       const savedFood = (entry.foodId && foodsById.get(entry.foodId))
         || foodsByName.get(normalizedName)
         || null;
 
       const savedName = this.normalizeName(savedFood?.name || '');
-      if (savedFood && (quickLogIds.has(savedFood.id) || quickLogNames.has(savedName))) continue;
+      if (savedFood && (savedFood.pinned || quickLogIds.has(savedFood.id) || quickLogNames.has(savedName))) continue;
 
       const key = savedFood ? `food:${savedFood.id}` : `history:${normalizedName}`;
       const timestamp = entry.timestamp || entry.updatedAt || entry.createdAt || '';
