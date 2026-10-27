@@ -419,3 +419,56 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
   .stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .toast { bottom: 1.5rem; }
 }
+
+
+/* Reserved food/recipe artwork slot; deliberately blank until images are assigned.
+   Keep it compact so existing buttons, menus, and mobile cards still fit. */
+.food-icon-slot {
+  display: inline-block;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  vertical-align: middle;
+  pointer-events: none;
+}
+.food-icon-text {
+  display: block;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+.food-icon-content {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.quick-food-main,
+.food-row-main {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.quick-food-main .food-icon-slot {
+  flex-basis: 20px;
+  width: 20px;
+  height: 20px;
+}
+.quick-food-main .food-icon-text .tiny {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.search-result .food-icon-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recipe-food-search-result .food-icon-content {
+  overflow: hidden;
+}
