@@ -15,18 +15,19 @@ setTimeout(() => {
     actions.className = 'actions';
     actions.style.marginTop = '0.15rem';
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'chip';
-    button.textContent = 'Homemade';
-    button.addEventListener('click', () => {
-      input.value = 'Homemade';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-      input.focus();
-    });
-
-    actions.appendChild(button);
+    for (const source of ['Homemade', 'Cafeteria']) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chip';
+      button.textContent = source;
+      button.addEventListener('click', () => {
+        input.value = source;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.focus();
+      });
+      actions.appendChild(button);
+    }
     label.appendChild(actions);
   };
 
