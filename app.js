@@ -206,7 +206,9 @@ const App = {
   // Reserved square for future food/recipe artwork; intentionally empty.
   // The saved-food ID keeps each slot addressable when icons are added later.
   foodIconHtml(food = null) {
-    const id = food?.id || food?.foodId || '';
+    const id = food && Object.prototype.hasOwnProperty.call(food, 'foodId')
+      ? (food.foodId || '')
+      : (food?.id || '');
     const kind = food?.recipe ? ' data-food-kind="recipe"' : '';
     return `<span class="food-icon-slot" aria-hidden="true"${id ? ` data-food-id="${this.attr(id)}"` : ''}${kind}></span>`;
   },
