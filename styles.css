@@ -434,6 +434,10 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
   background: var(--panel-2);
   vertical-align: middle;
   pointer-events: none;
+  /* Make the square ~30–33px visually without changing its flex dimensions.
+     CSS transforms don't contribute to parent/row layout sizing. */
+  transform: scale(1.5);
+  transform-origin: center;
 }
 .food-icon-text {
   display: block;
@@ -470,5 +474,7 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
   text-overflow: ellipsis;
 }
 .recipe-food-search-result .food-icon-content {
-  overflow: hidden;
+  /* Keep the larger square from being clipped; name text still truncates
+     inside .food-icon-text so search-result widths stay unchanged. */
+  overflow: visible;
 }
