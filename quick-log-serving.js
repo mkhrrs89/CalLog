@@ -151,8 +151,11 @@ setTimeout(() => {
     return `
       <div class="quick-food">
         <button class="quick-food-main" onclick="App.logFoodQuick('${this.attr(food.id)}')">
-          <strong>${this.esc(food.name)}</strong>
-          <span class="tiny muted">${this.esc(portion.name)} · ${this.formatNumber(portion.calories)} cal</span>
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text">
+            <strong>${this.esc(food.name)}</strong>
+            <span class="tiny muted">${this.esc(portion.name)} · ${this.formatNumber(portion.calories)} cal</span>
+          </span>
         </button>
         <button class="quick-food-more" onclick="App.openSavedFoodLogger('${this.attr(food.id)}')" aria-label="Portions and multiplier">⋯</button>
       </div>`;
