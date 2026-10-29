@@ -478,3 +478,35 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
      inside .food-icon-text so search-result widths stay unchanged. */
   overflow: visible;
 }
+
+/* Keep the two-column Quick Log readable on phones after adding icon slots.
+   Allow two compact name lines without widening cards or shrinking icons.
+   Applies to both pinned foods and 30-day suggestions. */
+@media (max-width: 719px) {
+  .quick-grid .quick-food-main {
+    gap: 0.42rem;
+    padding-left: 0.58rem;
+    padding-right: 0.32rem;
+  }
+
+  .quick-grid .quick-food-main .food-icon-text strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.75rem;
+    line-height: 1.14;
+    font-weight: 650;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    overflow: hidden;
+  }
+
+  .quick-grid .quick-food-main .food-icon-text .tiny {
+    font-size: 0.67rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
