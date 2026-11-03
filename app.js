@@ -131,6 +131,7 @@ const App = {
     date: null,
     entryView: 'chronological',
     foodQuery: '',
+    folderOpen: '',
     foodBulk: false,
     selectedFoods: new Set(),
     statsRange: 30,
@@ -264,6 +265,7 @@ const App = {
     const items = [
       ['today', '⌂', 'Today'],
       ['foods', '◉', 'Foods'],
+      ['folders', '▤', 'Folders'],
       ['stats', '▥', 'Stats'],
       ['settings', '⚙', 'Settings'],
     ];
@@ -276,6 +278,7 @@ const App = {
 
   async go(page) {
     this.view.page = page;
+    if (page === 'folders') this.view.folderOpen = '';
     if (page === 'today') this.view.date = this.today();
     this.closeSheet();
     this.closeModal();
@@ -299,6 +302,7 @@ const App = {
     let html = '';
     if (this.view.page === 'today') html = await this.renderToday();
     if (this.view.page === 'foods') html = await this.renderFoods();
+    if (this.view.page === 'folders') html = this.renderFolders();
     if (this.view.page === 'stats') html = await this.renderStats();
     if (this.view.page === 'settings') html = await this.renderSettings();
     if (token !== this.renderToken) return;
@@ -1179,6 +1183,102 @@ const App = {
     this.view.bumpTotal = true;
     await this.render();
     this.showToast(`${copies.length} entr${copies.length === 1 ? 'y' : 'ies'} copied`);
+  },
+
+  // Existing saved-food folder strings are the only source of truth.
+  // A folder view does not create new records or alter food assignments.
+  folderGroups() {
+    const grouped = new Map();
+    for (const food of this.cache.foods) {
+      const name = String(food.folder || '').trim();
+      if (!name) continue;
+      const key = name.toLocaleLowerCase();
+      if (!grouped.has(key)) grouped.set(key, { key, name, foods: [] });
+      grouped.get(key).foods.push(food);
+    }
+    return [...grouped.values()].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  },
+
+  async openFolder(key) {
+    const folder = this.folderGroups().find(group => group.key === key);
+    if (!folder) return this.showToast('Folder not found');
+    this.view.page = 'folders';
+    this.view.folderOpen = folder.key;
+    await this.render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  async closeFolder() {
+    this.view.folderOpen = '';
+    await this.render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  // The Foods bulk-selection state must never disable editing in Folders.
+  folderFoodRowHtml(food) {
+    const ingredients = food.recipe?.ingredients?.length || 0;
+    const meta = food.recipe
+      ? `Recipe · ${ingredients} ingredient${ingredients === 1 ? '' : 's'}`
+      : [food.source, ...(food.tags || []).slice(0, 2)].filter(Boolean).join(' · ');
+    const editor = food.recipe ? 'App.openRecipeBuilder' : 'App.openFoodEditor';
+    return `
+      <div class="food-row folder-food-row">
+        <span class="star">${food.pinned ? '★' : food.recipe ? '◈' : ''}</span>
+        <button class="food-row-main" type="button" onclick="${editor}('${this.attr(food.id)}')">
+          ${this.foodIconHtml(food)}
+          <span class="food-icon-text">
+            <strong class="food-name">${this.esc(food.name)}</strong>
+            <span class="food-row-meta">${this.esc(meta)}</span>
+          </span>
+        </button>
+        <strong class="folder-food-calories">${this.formatNumber(food.calories)} cal</strong>
+      </div>`;
+  },
+
+  renderFolders() {
+    const groups = this.folderGroups();
+    const selected = groups.find(folder => folder.key === this.view.folderOpen);
+    if (selected) {
+      const foods = [...selected.foods].sort((a, b) =>
+        String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }));
+      return `
+        <div class="page folder-page">
+          <div class="page-head folder-page-head">
+            <div>
+              <button class="btn ghost small-btn folder-back" type="button" onclick="App.closeFolder()">‹ All folders</button>
+              <div class="eyebrow">Food folder</div>
+              <h1>${this.esc(selected.name)}</h1>
+              <p>${foods.length} food${foods.length === 1 ? '' : 's'}</p>
+            </div>
+          </div>
+          <section class="section">
+            <div class="food-list">${foods.map(food => this.folderFoodRowHtml(food)).join('')}</div>
+          </section>
+        </div>`;
+    }
+    return `
+      <div class="page folder-page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Personal library</div>
+            <h1>Folders</h1>
+            <p>${groups.length} folder${groups.length === 1 ? '' : 's'}</p>
+          </div>
+        </div>
+        ${groups.length ? `
+          <section class="section">
+            <div class="folder-list">
+              ${groups.map(folder => `
+                <button class="folder-list-item" type="button" onclick="App.openFolder('${this.attr(folder.key)}')">
+                  <span class="folder-list-name">${this.esc(folder.name)}</span>
+                  <span class="folder-list-count">${folder.foods.length} food${folder.foods.length === 1 ? '' : 's'}</span>
+                  <span class="folder-list-chevron" aria-hidden="true">›</span>
+                </button>`).join('')}
+            </div>
+          </section>` : `
+          <div class="empty-state">No folders yet. Assign a folder while editing a saved food, and it will appear here.</div>`}
+      </div>`;
   },
 
   async renderFoods() {
