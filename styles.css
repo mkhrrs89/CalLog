@@ -540,3 +540,10 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
   .folder-food-row { gap: 0.45rem; }
   .folder-food-calories { font-size: 0.85rem; }
 }
+
+/* Folder-level bulk rename/move, without altering food-row behavior. */
+.folder-rename-button { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 719px) {
+  .folder-page-head { flex-wrap: wrap; }
+  .folder-rename-button { align-self: flex-start; }
+}
