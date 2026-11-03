@@ -1215,6 +1215,105 @@ const App = {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
+  openRenameFolder() {
+    const source = this.folderGroups().find(group => group.key === this.view.folderOpen);
+    if (!source) return this.showToast('Folder not found');
+
+    const others = this.folderGroups().filter(group => group.key !== source.key);
+    const count = source.foods.length;
+    this.showModal(`
+      <h2>Rename / move folder</h2>
+      <p>Change the folder for all ${count} saved food${count === 1 ? '' : 's'} and recipes in <strong>${this.esc(source.name)}</strong>. This does not change their calories, other details, or past logs.</p>
+      <form class="form-grid" onsubmit="event.preventDefault();App.applyFolderRename()">
+        <label>Folder name
+          <input id="folderRenameName" type="text" required maxlength="120"
+            value="${this.attr(source.name)}" list="folderRenameSuggestions"
+            oninput="App.updateFolderRenamePreview()" autocomplete="off" />
+        </label>
+        <datalist id="folderRenameSuggestions">
+          ${others.map(folder => `<option value="${this.attr(folder.name)}"></option>`).join('')}
+        </datalist>
+        <p id="folderRenameHint" class="small muted" aria-live="polite"></p>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="folderRenameSubmit">Save folder name</button>
+          <button class="btn ghost" type="button" onclick="App.closeModal()">Cancel</button>
+        </div>
+      </form>`);
+    this.updateFolderRenamePreview();
+  },
+
+  updateFolderRenamePreview() {
+    const name = document.getElementById('folderRenameName')?.value.trim() || '';
+    const hint = document.getElementById('folderRenameHint');
+    const submit = document.getElementById('folderRenameSubmit');
+    const source = this.folderGroups().find(group => group.key === this.view.folderOpen);
+    if (!hint || !submit || !source) return;
+
+    const destination = this.folderGroups().find(group =>
+      group.key === name.toLocaleLowerCase() && group.key !== source.key);
+    const disabled = !name || name === source.name;
+    submit.disabled = disabled;
+    if (!name) hint.textContent = 'Enter a folder name.';
+    else if (name === source.name) hint.textContent = 'Enter a different name to save changes.';
+    else if (destination) hint.textContent =
+      `This will move ${source.foods.length} item${source.foods.length === 1 ? '' : 's'} into the existing “${destination.name}” folder, which currently has ${destination.foods.length}.`;
+    else hint.textContent =
+      `This will update the folder assignment on ${source.foods.length} saved item${source.foods.length === 1 ? '' : 's'}.`;
+  },
+
+  async applyFolderRename() {
+    const sourceKey = this.view.folderOpen;
+    const requestedName = document.getElementById('folderRenameName')?.value.trim() || '';
+    if (!requestedName) return this.showToast('Enter a folder name');
+
+    const button = document.getElementById('folderRenameSubmit');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+    try {
+      // Read fresh records, preserving any unrelated updates since the page loaded.
+      // putMany commits the entire folder reassignment in one transaction.
+      const foods = await this.db.getAll('foods');
+      const members = foods.filter(food =>
+        String(food.folder || '').trim().toLocaleLowerCase() === sourceKey);
+      if (!members.length) {
+        this.closeModal();
+        await this.refreshCache();
+        this.view.folderOpen = '';
+        await this.render();
+        return this.showToast('The original folder no longer has any foods');
+      }
+
+      const existingDestination = foods.find(food =>
+        String(food.folder || '').trim().toLocaleLowerCase() === requestedName.toLocaleLowerCase()
+        && String(food.folder || '').trim().toLocaleLowerCase() !== sourceKey);
+      const destinationName = existingDestination
+        ? String(existingDestination.folder).trim()
+        : requestedName;
+
+      if (members.every(food => String(food.folder || '').trim() === destinationName)) {
+        return this.showToast('Those foods already have that folder name');
+      }
+
+      const now = new Date().toISOString();
+      const updates = members.map(food => ({
+        ...food,
+        folder: destinationName,
+        updatedAt: now,
+      }));
+      await this.db.putMany('foods', updates);
+      this.closeModal();
+      await this.refreshCache();
+      this.view.folderOpen = destinationName.toLocaleLowerCase();
+      await this.render();
+      this.showToast(`${updates.length} food${updates.length === 1 ? '' : 's'} moved to “${destinationName}”`);
+    } catch (error) {
+      console.error('Could not rename folder', error);
+      this.showToast('Could not update folder; nothing was changed');
+    } finally {
+      if (button?.isConnected) button.disabled = false;
+    }
+  },
+
   // The Foods bulk-selection state must never disable editing in Folders.
   folderFoodRowHtml(food) {
     const ingredients = food.recipe?.ingredients?.length || 0;
@@ -1251,6 +1350,7 @@ const App = {
               <h1>${this.esc(selected.name)}</h1>
               <p>${foods.length} food${foods.length === 1 ? '' : 's'}</p>
             </div>
+            <button class="btn ghost folder-rename-button" type="button" onclick="App.openRenameFolder()">Rename / Move</button>
           </div>
           <section class="section">
             <div class="food-list">${foods.map(food => this.folderFoodRowHtml(food)).join('')}</div>
