@@ -1270,7 +1270,7 @@ const App = {
           <section class="section">
             <div class="folder-list">
               ${groups.map(folder => `
-                <button class="folder-list-item" type="button" onclick="App.openFolder('${this.attr(folder.key)}')">
+                <button class="folder-list-item" type="button" onclick="App.openFolder(${this.attr(JSON.stringify(folder.key))})">
                   <span class="folder-list-name">${this.esc(folder.name)}</span>
                   <span class="folder-list-count">${folder.foods.length} food${folder.foods.length === 1 ? '' : 's'}</span>
                   <span class="folder-list-chevron" aria-hidden="true">›</span>
