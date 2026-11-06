@@ -547,3 +547,16 @@ svg.chart { width: 100%; min-width: 360px; height: 220px; overflow: visible; }
   .folder-page-head { flex-wrap: wrap; }
   .folder-rename-button { align-self: flex-start; }
 }
+
+
+/* Show a logged serving multiplier beside the food name, never beside calories.
+   Keep it smaller and quieter than the name, including in grouped logs. */
+.entry-row .entry-multiplier {
+  display: inline;
+  margin-left: 0.1em;
+  color: var(--muted);
+  font-size: 0.76em;
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
