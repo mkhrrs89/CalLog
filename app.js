@@ -546,10 +546,15 @@ const App = {
   entryRowHtml(entry, tags = this.tagMap()) {
     const currentTag = tags.get(entry.mealTagId);
     const color = currentTag?.color || entry.mealTagSnapshot?.color || 'transparent';
+    // Older/manual entries without a multiplier are treated as 1×.
+    const multiplier = entry.multiplier == null || entry.multiplier === ''
+      ? 1
+      : Number(entry.multiplier);
+    const showMultiplier = Number.isFinite(multiplier) && Math.abs(multiplier - 1) > 0.000001;
     return `
       <button class="entry-row" style="border-left-color:${this.attr(color)}" onclick="App.openEntryEditor('${entry.id}')">
         ${this.foodIconHtml(entry)}
-        <span class="food-name">${this.esc(entry.name || 'Unnamed Food')}</span>
+        <span class="food-name">${this.esc(entry.name || 'Unnamed Food')}${showMultiplier ? ` <span class="entry-multiplier">${this.esc(String(multiplier))}×</span>` : ''}</span>
         <span class="calories">${this.formatNumber(entry.calories)} cal</span>
       </button>`;
   },
