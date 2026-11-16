@@ -44,7 +44,7 @@
       : String(multiplier || '');
     // Distinguish a serving multiplier from a quantity already in the label.
     // For example, 2 servings of "1/2 cup" should read "2× 1/2 cup".
-    const startsWithQuantity = /^(?:\\d|[½⅓⅔¼¾⅛⅜⅝⅞])/.test(servingLabel);
+    const startsWithQuantity = /^(?:[0-9]|[½⅓⅔¼¾⅛⅜⅝⅞])/.test(servingLabel);
     return `${amount}${startsWithQuantity ? '×' : ''} ${servingLabel}`.trim();
   };
 
