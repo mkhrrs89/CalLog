@@ -34,11 +34,18 @@
   };
 
   const formatServingAmount = (multiplier, label) => {
+    const servingLabel = String(label || 'serving').trim();
     const number = Number(multiplier);
+    // At 1×, show the saved label verbatim. A label such as "1/2 cup"
+    // already contains the quantity and must not become "1 1/2 cup".
+    if (Number.isFinite(number) && Math.abs(number - 1) < 0.000001) return servingLabel;
     const amount = Number.isFinite(number)
       ? new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(number)
       : String(multiplier || '');
-    return `${amount} ${String(label || 'serving').trim()}`.trim();
+    // Distinguish a serving multiplier from a quantity already in the label.
+    // For example, 2 servings of "1/2 cup" should read "2× 1/2 cup".
+    const startsWithQuantity = /^(?:\\d|[½⅓⅔¼¾⅛⅜⅝⅞])/.test(servingLabel);
+    return `${amount}${startsWithQuantity ? '×' : ''} ${servingLabel}`.trim();
   };
 
   const originalOpenEntryEditor = App.openEntryEditor;
