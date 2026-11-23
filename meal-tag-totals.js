@@ -6,13 +6,25 @@
   const originalEntriesHtml = App.entriesHtml;
 
   App.entriesHtml = function(entries) {
-    if (this.view.entryView !== 'grouped' || !entries.length) {
+    if (this.view.entryView !== 'grouped' || (!entries.length && !this.cache.tags.length)) {
       return originalEntriesHtml.call(this, entries);
     }
 
     const tags = this.tagMap();
     const tagOrder = new Map(this.cache.tags.map((tag, index) => [tag.id, index]));
-    const groups = new Map();
+    // Always show every current meal tag, in the user's saved order, even
+    // when this particular date has no entries assigned to that tag.
+    const groups = new Map(this.cache.tags.map((tag, index) => [
+      `tag:${tag.id}`,
+      {
+        name: tag.name,
+        tagId: tag.id,
+        items: [],
+        order: index,
+        firstEntryIndex: Number.MAX_SAFE_INTEGER,
+        untagged: false,
+      },
+    ]));
 
     for (const [entryIndex, entry] of entries.entries()) {
       const currentTag = tags.get(entry.mealTagId);
@@ -37,7 +49,9 @@
         });
       }
 
-      groups.get(key).items.push(entry);
+      const group = groups.get(key);
+      group.items.push(entry);
+      group.firstEntryIndex = Math.min(group.firstEntryIndex, entryIndex);
     }
 
     const orderedGroups = [...groups.values()].sort((a, b) => {
@@ -61,7 +75,9 @@
             <span>${this.esc(name)}</span>
             <span class="group-total">${this.formatNumber(groupTotal)} cal</span>
           </div>
-          <div class="entry-list">${items.map(entry => this.entryRowHtml(entry, tags)).join('')}</div>
+          <div class="entry-list">${items.length
+            ? items.map(entry => this.entryRowHtml(entry, tags)).join('')
+            : '<div class="meal-tag-empty" aria-label="Empty meal tag">Drop foods here</div>'}</div>
         </section>`;
     }).join('');
   };
