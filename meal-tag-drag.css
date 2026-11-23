@@ -138,3 +138,23 @@ body.meal-tag-dragging .meal-tag-group.is-meal-drag-source-group {
     animation-duration: .01ms !important;
   }
 }
+
+
+/* Empty current meal tags remain visible and hittable as drag destinations. */
+.meal-tag-group[data-meal-tag-id] .meal-tag-empty {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.08rem 0 0.35rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: 0.78rem;
+  pointer-events: none;
+}
+.meal-tag-group.is-meal-drop-target .meal-tag-empty {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
