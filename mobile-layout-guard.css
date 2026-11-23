@@ -2,14 +2,18 @@
 html.foodlog-force-phone-layout {
   width: var(--foodlog-phone-width) !important;
   max-width: var(--foodlog-phone-width) !important;
-  overflow-x: hidden !important;
+  /* Clip sideways overflow without creating a nested vertical scrollport.
+     iOS WebKit can otherwise let the fixed bottom nav drift while scrolling. */
+  overflow-x: clip !important;
 }
 
 html.foodlog-force-phone-layout body {
   width: var(--foodlog-phone-width) !important;
   max-width: var(--foodlog-phone-width) !important;
   min-width: 0 !important;
-  overflow-x: hidden !important;
+  /* Clip sideways overflow without creating a nested vertical scrollport.
+     iOS WebKit can otherwise let the fixed bottom nav drift while scrolling. */
+  overflow-x: clip !important;
 }
 
 html.foodlog-force-phone-layout .app-shell {
