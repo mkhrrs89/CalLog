@@ -666,6 +666,9 @@ const App = {
             <input id="manualCalories" inputmode="numeric" type="number" min="0" step="1" placeholder="190" required />
           </label>
         </div>
+        <label>Serving label <span class="field-help">Optional; e.g. 1/2 cup, bowl, slice</span>
+          <input id="manualServingLabel" type="text" autocomplete="off" placeholder="e.g. 1/2 cup" />
+        </label>
         <label class="checkbox-line">
           <input id="manualSave" type="checkbox" /> Save to Food Database
         </label>
@@ -915,6 +918,7 @@ const App = {
       name,
       calories,
       saveToDatabase,
+      servingLabel: document.getElementById('manualServingLabel')?.value.trim() || '',
       mealTagId: document.getElementById('manualMealTag')?.value || '',
       confidence: document.getElementById('manualConfidence')?.value || '',
       source: document.getElementById('manualSource')?.value.trim() || '',
@@ -982,6 +986,7 @@ const App = {
         name: payload.name,
         nameLower: this.normalizeName(payload.name),
         calories: payload.calories,
+        servingLabel: payload.servingLabel || '',
         source: payload.source,
         folder: '',
         tags: [],
@@ -1006,7 +1011,7 @@ const App = {
       foodId,
       baseCalories: payload.calories,
       multiplier: 1,
-      portionName: 'Manual',
+      portionName: payload.servingLabel || 'Manual',
       mealTagId: payload.mealTagId,
       mealTagSnapshot: tag ? { id: tag.id, name: tag.name, color: tag.color } : null,
       confidence: payload.confidence,
@@ -1030,7 +1035,7 @@ const App = {
     const entry = {
       id: this.uid('entry'), date: this.view.date, timestamp: now,
       name: food.name, calories: payload.calories, foodId: food.id,
-      baseCalories: food.calories, multiplier: 1, portionName: 'Manual override',
+      baseCalories: food.calories, multiplier: 1, portionName: payload.servingLabel || 'Manual override',
       mealTagId: payload.mealTagId,
       mealTagSnapshot: tag ? { id: tag.id, name: tag.name, color: tag.color } : null,
       confidence: payload.confidence, note: payload.note, source: payload.source || food.source || '',
