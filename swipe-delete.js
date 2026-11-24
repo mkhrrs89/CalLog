@@ -5,6 +5,7 @@
   App.__swipeDeleteInstalled = true;
 
   const OPEN_DISTANCE = 92;
+  const SERVING_SWIPE_THRESHOLD = 58;
   const DRAG_SLOP = 7;
   const HORIZONTAL_BIAS = 1.08;
   const DELETE_TAP_SLOP = 12;
@@ -89,8 +90,121 @@
     return true;
   };
 
+  (function installSwipeServingPopup() {
+  const servingCaloriesFor = entry => {
+    if (entry?.portionCalories != null && entry.portionCalories !== '') {
+      const stored = Number(entry.portionCalories);
+      if (Number.isFinite(stored) && stored >= 0) return stored;
+    }
+    const currentMultiplier = Number(entry?.multiplier ?? 1);
+    const logged = Number(entry?.calories);
+    if (currentMultiplier > 0 && Number.isFinite(currentMultiplier) &&
+        Number.isFinite(logged) && logged >= 0) return logged / currentMultiplier;
+    const fallback = Number(entry?.baseCalories);
+    return Number.isFinite(fallback) && fallback >= 0 ? fallback : 0;
+  };
+  const validAmount = number => Number.isFinite(number) && number >= 0
+    && Math.abs(number * 100 - Math.round(number * 100)) < 0.000001;
+  App.openSwipeServingEditor = function(entryId) {
+    const entry = this.cache.entries.find(item => item.id === entryId);
+    if (!entry) return;
+    const food = this.cache.foods.find(item => item.id === entry.foodId);
+    const rawCount = entry.multiplier == null || entry.multiplier === '' ? 1 : Number(entry.multiplier);
+    const count = validAmount(rawCount) ? rawCount : 1;
+    const perServing = servingCaloriesFor(entry);
+    let label = String(entry.portionName || '').trim();
+    if (!label || label === 'Default') label = food?.servingLabel || 'serving';
+    this.showModal(`
+      <div class="swipe-serving-editor">
+        <div class="row space">
+          <div><div class="eyebrow">Quick edit</div><h2>Number of servings</h2></div>
+          <button type="button" class="icon-btn" onclick="App.closeModal()" aria-label="Close">×</button>
+        </div>
+        <p class="small muted swipe-serving-food-name">${this.esc(entry.name || 'Unnamed Food')}</p>
+        <form id="swipeServingForm" class="form-grid" data-entry-id="${this.attr(entry.id)}"
+              onsubmit="event.preventDefault();App.saveSwipeServing()">
+          <label>Servings
+            <input id="swipeServingCount" type="number" inputmode="decimal" step="0.01" min="0"
+                   required value="${count}" oninput="App.updateSwipeServingPreview()" />
+          </label>
+          <div class="actions swipe-serving-chips" aria-label="Quick serving amounts">
+            ${[0.5, 0.75, 1, 1.5, 2, 3].map(value => `
+              <button type="button" class="chip ${value === count ? 'active' : ''}"
+                      onclick="App.pickSwipeServing(${value})">${value}×</button>`).join('')}
+          </div>
+          <div class="swipe-serving-summary small">
+            <div class="row space"><span class="muted">Serving size</span><strong>${this.esc(label)}</strong></div>
+            <div class="row space"><span class="muted">Per serving</span><strong>${entry.caloriesPending ? 'Calories TBD' : `${this.formatNumber(perServing)} cal`}</strong></div>
+            <div class="row space"><span class="muted">New total</span><strong id="swipeServingTotal">${entry.caloriesPending ? 'Calories TBD' : `${this.formatNumber(Math.round(count * perServing))} cal`}</strong></div>
+          </div>
+          <div class="actions swipe-serving-actions">
+            <button id="swipeServingSave" type="submit" class="btn primary">Save servings</button>
+            <button type="button" class="btn ghost" onclick="App.closeModal()">Cancel</button>
+          </div>
+        </form>
+      </div>`);
+  };
+  App.pickSwipeServing = function(value) {
+    const input = document.getElementById('swipeServingCount');
+    if (!input) return;
+    input.value = String(value);
+    this.updateSwipeServingPreview();
+  };
+  App.updateSwipeServingPreview = function() {
+    const form = document.getElementById('swipeServingForm');
+    const entry = this.cache.entries.find(item => item.id === form?.dataset.entryId);
+    const input = document.getElementById('swipeServingCount');
+    const total = document.getElementById('swipeServingTotal');
+    const save = document.getElementById('swipeServingSave');
+    if (!entry || !input || !total || !save) return;
+    const value = input.value.trim() === '' ? NaN : Number(input.value);
+    const valid = validAmount(value);
+    save.disabled = !valid;
+    total.textContent = !valid ? 'Enter a valid amount'
+      : entry.caloriesPending ? 'Calories TBD'
+      : `${this.formatNumber(Math.round(servingCaloriesFor(entry) * value))} cal`;
+    form.querySelectorAll('.swipe-serving-chips .chip').forEach(chip => {
+      chip.classList.toggle('active',
+        valid && Math.abs(Number(chip.textContent.replace('×', '')) - value) < 0.000001);
+    });
+  };
+  App.saveSwipeServing = async function() {
+    const form = document.getElementById('swipeServingForm');
+    const input = document.getElementById('swipeServingCount');
+    const save = document.getElementById('swipeServingSave');
+    if (!form || !input || !save || save.disabled) return;
+    const value = input.value.trim() === '' ? NaN : Number(input.value);
+    if (!validAmount(value)) return this.showToast('Enter 0 or more servings, up to two decimals');
+    save.disabled = true;
+    try {
+      const entry = await this.db.get('entries', form.dataset.entryId);
+      if (!entry) {
+        this.closeModal();
+        return this.showToast('This logged food no longer exists');
+      }
+      const perServing = servingCaloriesFor(entry);
+      await this.db.put('entries', {
+        ...entry,
+        multiplier: value,
+        portionCalories: perServing,
+        calories: entry.caloriesPending ? entry.calories : Math.round(perServing * value),
+        updatedAt: new Date().toISOString(),
+      });
+      this.closeModal();
+      await this.refreshCache();
+      this.view.bumpTotal = true;
+      await this.render();
+      this.showToast(`Servings updated to ${value}×`);
+    } catch (error) {
+      console.error('Could not update logged servings', error);
+      this.showToast('Could not save servings; please retry');
+      if (save.isConnected) save.disabled = false;
+    }
+  };
+})();
+
   const clampDrag = value => {
-    if (value > 0) return Math.min(14, value * 0.22);
+    if (value > 0) return Math.min(48, value * 0.6);
     if (value < -OPEN_DISTANCE) {
       return -OPEN_DISTANCE + ((value + OPEN_DISTANCE) * 0.18);
     }
@@ -146,6 +260,7 @@
       startY: event.clientY,
       baseX: wrapper.classList.contains('is-open') ? -OPEN_DISTANCE : 0,
       currentX: wrapper.classList.contains('is-open') ? -OPEN_DISTANCE : 0,
+      deltaX: 0,
       axis: null,
       moved: false,
     };
@@ -179,6 +294,7 @@
 
     event.preventDefault();
     gesture.moved = true;
+    gesture.deltaX = dx;
     gesture.currentX = clampDrag(gesture.baseX + dx);
     gesture.wrapper.classList.add('is-dragging');
     gesture.track.style.transform = `translate3d(${gesture.currentX}px, 0, 0)`;
@@ -202,7 +318,11 @@
 
     if (finished.moved) suppressClickUntil = Date.now() + 420;
 
-    if (finished.currentX <= -(OPEN_DISTANCE * 0.48)) {
+    if (finished.baseX === 0 && finished.deltaX >= SERVING_SWIPE_THRESHOLD) {
+      const entryId = finished.wrapper.dataset.entryId;
+      closeEntry(finished.wrapper);
+      if (entryId) App.openSwipeServingEditor(entryId);
+    } else if (finished.currentX <= -(OPEN_DISTANCE * 0.48)) {
       openEntry(finished.wrapper);
     } else {
       closeEntry(finished.wrapper);
