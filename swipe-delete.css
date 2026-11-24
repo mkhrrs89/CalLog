@@ -102,3 +102,26 @@
     animation-duration: .01ms !important;
   }
 }
+
+/* Quick serving edit from a right-swipe; original delete action is unchanged. */
+.modal:has(.swipe-serving-editor) { width: min(370px, 100%); }
+.swipe-serving-editor h2 { margin: 0.12rem 0 0; font-size: 1.28rem; }
+.swipe-serving-food-name { margin: 0.5rem 0 0.9rem; overflow-wrap: anywhere; }
+.swipe-serving-chips { gap: 0.38rem; }
+.swipe-serving-chips .chip { padding: 0.48rem 0.62rem; }
+.swipe-serving-chips .chip.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+.swipe-serving-summary {
+  display: grid;
+  gap: 0.48rem;
+  padding: 0.72rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+.swipe-serving-summary .row { gap: 0.5rem; }
+.swipe-serving-summary strong { text-align: right; overflow-wrap: anywhere; }
+.swipe-serving-actions { margin-top: 0.15rem; }
